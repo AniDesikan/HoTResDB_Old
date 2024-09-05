@@ -1,0 +1,225 @@
+<html>
+	<title>Help</title>
+    <head>
+	<!--Load css sheets-->
+	<!--<link rel="stylesheet" type="text/css" href = "VHFstyle.css">-->
+	<link rel="stylesheet" type="text/css" href = "css/VHFquerystyle.css">
+	
+	<!----Custom CSS for FAQ Page--->
+	<style type="text/css">
+		.answer{display:none}
+	</style>
+	
+	<!---JQuery---->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<!-- Google Analytics --->
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-80347666-1', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+	<!--- End Google Analytics -->
+	
+	<script type = "text/javascript"> 
+	$(document).ready(function(){
+		$("#FAQ1").click(function(){
+			$("#FAnswer1").slideToggle("fast");
+		});
+		$("#FAQ2").click(function(){
+			$("#FAnswer2").slideToggle("fast");
+		});
+		$("#FAQ3").click(function(){
+			$("#FAnswer3").slideToggle("fast");
+		});
+		$("#FAQ4").click(function(){
+			$("#FAnswer4").slideToggle("fast");
+		});
+		$("#FAQ5").click(function(){
+			$("#FAnswer5").slideToggle("fast");
+		});
+		$("#FAQ6").click(function(){
+			$("#FAnswer6").slideToggle("fast");
+		});
+		$("#FAQ7").click(function(){
+			$("#FAnswer7").slideToggle("fast");
+		});
+		$("#FAQ8").click(function(){
+			$("#FAnswer8").slideToggle("fast");
+		});
+		$("#FAQ9").click(function(){
+			$("#FAnswer9").slideToggle("fast");
+		});
+		$("#FAQ10").click(function(){
+			$("#FAnswer10").slideToggle("fast");
+		});
+		$("#FAQ11").click(function(){
+			$("#FAnswer11").slideToggle("fast");
+		});
+		$("#FAQ99").click(function(){
+			$("#FAnswer99").slideToggle("fast");
+		});
+	});
+	</script>
+	<script type="text/javascript"> 
+        $(document).ready(function() {
+            $("[id^=FAQ]").click(function() {
+                var answerId = "#FAnswer" + this.id.substring(3);
+                $(answerId).slideToggle("fast");
+            });
+
+            // Check admin status on page load
+            logincheck();
+        });
+
+        // Function to get cookie by name
+        function getCookie(name) {
+            let matches = document.cookie.match(new RegExp(
+                "(?:^|; )" + name.replace(/([.$?*|{}()[]\\\/+^])/g, '\\$1') + "=([^;]*)"
+            ));
+            return matches ? decodeURIComponent(matches[1]) : undefined;
+        }
+
+        // Check if user is admin
+        function admincheck(data) {
+            $.ajax({
+                type: "POST",
+                url: "/cgi-bin/adminstatus.py",
+                data: data,
+                dataType: "json",
+                success: function(response) {
+                    let bool = response[0][0];
+                    adminstate(bool);
+                },
+                error: function(response, data, status) {
+                    console.log(response);
+                    console.log(status);
+                    console.log(data);
+                    $("#error").html(response['responseText']);
+                }
+            });
+        }
+
+        // On page load, check if user is admin
+        function logincheck() {
+    var username = getCookie("username");
+    console.log(username);
+    if (username != "") {
+        var data = "&username=" + encodeURIComponent(username);
+        admincheck(data);
+        // Hide register button
+        document.getElementById("register_button").style.display = "none";
+    } else {
+        // Show register button
+        document.getElementById("register_button").style.display = "block";
+        document.getElementById("user-access-link").style.display = "none";
+		document.getElementById("enter-data").style.display = "none";
+    }
+}
+
+        // Update the UI based on admin status
+        function adminstate(bool) {
+            if (bool === "Yes") {
+                document.getElementById("user-access-link").style.display = "block";
+				document.getElementById("enter-data").style.display = "block";
+            } else {
+                document.getElementById("user-access-link").style.display = "none";
+            }
+        }
+    </script>
+	<script src="js/hotresdb.js">	</script>
+
+	</head>
+	<body onload="CheckUser()">
+		<div id="top_grad"></div>
+		<!-- Start container here NEEDS TO BE DONE -->
+		<div class="put_maincontainerhere"></div>
+		<div class="put_innercontainerhere "></div>
+			<div id = "pageHeader">
+				<!-- Website header-->
+				<!---h1>HoTRes<a style="color:#3333ff;">DB</a></h1--->
+				<img id = "logo" src="./img/HoTResDB_Logo_resize.PNG"/>
+				<div class ="landinglogin">
+					<form>
+						<button id = "login_button" formaction="VHFLogin.html">Login</button>
+						<!----Take user to cgi page to register,---->
+						<!----so password can be hashed right away---->
+						<button id="register_button" formaction="VHFRegister.html">Register</button>
+					</form>
+				</div>
+			</div>
+		<div id ="navcontainer">
+		<!-- Navigation bar -->
+		<ul>
+			<li>
+				<a href="index.html">Home</a>
+			</li>
+			<li>
+				<a href="VHFQueries.html">Search</a>
+			</li>
+			<li>
+				<a href="VHFDataStats.html">Data Statistics</a>
+			</li>
+			<li>
+				<a href="VHFHelp.html">Help</a>
+			</li>
+			<li>
+				<a href="VHFContact.html">Contact Us</a>
+			</li>
+			<li>
+				<a href="VHFContributor.html">Contributors</a>
+			<li>
+				<li id="user-access-link" style="display: none;">
+					<a href="VHFUserAccess.html">User Access</a>
+				</li>
+			<li id="enter-data" style="display: none;">
+				<a href="VHFEnterDataForm.html">Enter Data</a>
+			</li>
+			<div class="topcorner"></div>
+		</ul>
+		</div> <!---END Navigation bar---> 
+		<div class = "search_data_outer_div" >
+<h1>Frequently Asked Questions</h1>
+<a id = "FAQ1" class = "FAQuestion" style="cursor: pointer;"><b>What information can I access through the HotRes Database?</b></a>
+<p id = "FAnswer1" class = "answer">The database stores gene expression data from VHF studies on non-human primates. Expression levels for specific genes under viral infection or control conditions can be accessed.</p>
+<hr class = "FAQline">
+<a id = "FAQ2" class = "FAQuestion" style="cursor: pointer;"><b>How can I search the HotRes Database?</b></a>
+<p id = "FAnswer2" class = "answer">Select the type of virus (Ebola, Marburg, Lassa) and strain of interest, as well as the type of gene expression analysis tool (RNA-seq or Microarray). Enter a list of one or more genes (separated per line) whose expression values you wish to retrieve.</p>
+<hr class = "FAQline">
+<a id = "FAQ3" class = "FAQuestion" style="cursor: pointer;"><b>What are the required input formats?</b></a>
+<p id = "FAnswer3" class = "answer">Gene names must be in one the following supported formats: WikiGene symbol, UniProt ID, Ensembl Human or Ensembl Macaque. Please use the corresponding text box for each format. Genes can be separated by tab or newline. Outputs will be in Human Gene Symbol and Ensembl Human ID.</p>
+<hr class = "FAQline">
+<a id = "FAQ4" class = "FAQuestion" style="cursor: pointer;"><b>What kind of data can I get from this search?</b></a>
+<p id = "FAnswer4" class = "answer">The search will take you to the tab with successful hits in the database, including corresponding EnsemblID and a GeneCards link for more information. You can click through any of the other results tabs for tables of the results of your search by gene expression or fold change over time, line graphs of counts over days post infection, line graphs of fold change over days post infection, and clustered heat maps on fold change data.</p>
+<hr class = "FAQline">
+<a id = "FAQ5" class = "FAQuestion" style="cursor: pointer;"><b>Can I use search results in a publication?</b></a>
+<p id = "FAnswer5" class = "answer">Currently this database is meant as an exploratory tool to visualize data. It is not recommended for use as a rigorous analytical tool. However data downloads are available for further analysis.</p>
+<hr class = "FAQline">
+<a id = "FAQ6" class = "FAQuestion" style="cursor: pointer;"><b>What types of files can I download?</b></a>
+<p id = "FAnswer6" class = "answer">Spreadsheets (.csv) containing the requested gene expression levels or fold change can be downloaded. Additionally, all graphs are downloadable via the options button in the top right of each graph area.</p>
+<hr class = "FAQline">
+<a id = "FAQ7" class = "FAQuestion" style="cursor: pointer;"><b>Can the graphs be downloaded?</b></a>
+<p id = "FAnswer7" class = "answer">Yes, the graphs have a built in download function. Simply click the context menu in the top right corner of the graph to download a PNG, JPEG, PDF or SVG copy of the graph.</p>
+<!---hr class = "FAQline">
+<a id = "FAQ8" class = "FAQuestion" style="cursor: pointer;"><b>How can I gain access to restricted search results?</b></a>
+<p id = "FAnswer8" class = "answer">Some data is restricted on account of being still unpublished. Access to this data requires approval by an administrator. Please create an account to request approval. </p--->
+<hr class = "FAQline">
+<a id = "FAQ9" class = "FAQuestion" style="cursor: pointer;"><b>How do I create an account?</b></a>
+<p id = "FAnswer9" class = "answer">Accounts will only be created for Connor lab members and collaborators. Please click on <a href="VHFRegister.html">Register</a> on the database homepage and follow the instructions.</p>
+<hr class = "FAQline">
+<a id = "FAQ10" class = "FAQuestion" style="cursor: pointer;"><b>I can't seem to find the gene I am looking for. How can I search for it?</b></a>
+<p id = "FAnswer10" class = "answer">Our <a href = "VHFQueries.html">search page</a> has a "Browse Database" tab that will allow you to search for genes included in the datasets. If your gene was not found, it is likely not included in the available datasets. Please <a href = "VHFContact.html">contact us</a> if you have further questions about your gene.</p>
+<hr class = "FAQline">
+<a id = "FAQ11" class = "FAQuestion" style="cursor: pointer;"><b>Where can I get more information about the Nanostring Codeset?</b></a>
+<p id = "FAnswer11" class = "answer">The NanoString datasets from the USAMRIID work resulted in the NHP Immunology NanoString codset <a href = https://nanostring.com/products/ncounter-assays-panels/immunology/nhp-immunology/>nanostring website</a>
+<hr class = "FAQline">
+<a id = "FAQ99" class = "FAQuestion" style="cursor: pointer;"><b>When was the database last updated?</b></a>
+<p id = "FAnswer99" class = "answer">The data was last updated on 5/7/2024.</p>
+<hr class = "FAQline">
+	</div>
+	</body>
+</html>

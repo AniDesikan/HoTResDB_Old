@@ -1,0 +1,779 @@
+<html>
+	<title></title>
+	<head>
+		<!----Load Hotresdb Scripts---->
+		<script src="js/hotresdb.js"></script>
+		<!----Load CSS style sheets---->
+		<link rel="stylesheet" type="text/css" href = "css/VHFquerystyle.css">
+
+		<!----Load ajax---->
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+
+		<!----Load Jquery ui API---->
+		<!--Load jquery ui api-->
+		<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+		<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+		<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+
+		<!----Load HighCharts---->
+		<script src="https://code.highcharts.com/highcharts.js"></script>
+		<script src="https://code.highcharts.com/highcharts-more.js"></script>
+		<script src="https://code.highcharts.com/modules/data.js"></script>
+		<script src="https://code.highcharts.com/modules/heatmap.js"></script>
+		<script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+		<!--Scripts-->
+		<script type="text/javascript">
+		// Imports data from page which opened it
+		var type = sessionStorage.getItem("type");
+		var response;
+		<!--$(document).ready(console.log(response));-->
+		//Loads the chart specified by page which opened the window
+		function loadchart(n){
+		$(".test").html(response);
+		if (n == "chartA") {
+			$("title").html("Expression Pattern Over Time");
+			response = sessionStorage.getItem("CountLine");
+			response = JSON.parse(response);
+			console.log(response);
+			drawCountLine(response);
+		}
+		if (n == "chartB") {
+			$("title").html("Fold Change Over Time");
+			response = sessionStorage.getItem("FCLine");
+			response = JSON.parse(response);
+			drawFCLine(response);
+		}
+		var CGS_regex = new RegExp("chartCGS"); //Regex for Genes per study counts
+		<!--console.log(n);-->
+		<!--console.log(CGS_regex.test(n));-->
+		if (CGS_regex.test(n)== true) {
+			$("title").html("Gene Expression by Gene");
+			response1 = sessionStorage.getItem("CountLine");
+			response7 = sessionStorage.getItem("Response7");
+			counts = JSON.parse(response1);
+			studies = JSON.parse(response7);
+			<!--console.log(response1, response7);-->
+			parseCountsGenePerStudy (counts, studies);
+		}
+		var SBG_regex = new RegExp("chartSBG"); //Regex for Study Per Gene counts
+		if (SBG_regex.test(n)== true) {
+			$("title").html("Gene Expression by Study");
+			response1 = sessionStorage.getItem("CountLine");
+			response8 = sessionStorage.getItem("Response8");
+			counts = JSON.parse(response1);
+			genes = JSON.parse(response8);
+			parseCountsStudyPerGene (counts, genes);
+		}
+		var FPS_regex = new RegExp("chartFPS"); //Regex for Fold Change Gene per Study
+		if (FPS_regex.test(n)== true) {
+			$("title").html("Fold Change by Gene");
+			response2 = sessionStorage.getItem("FCLine");
+			response7 = sessionStorage.getItem("Response7");
+			counts = JSON.parse(response2);
+			studies = JSON.parse(response7);
+			parseFCGenePerStudy (counts, studies);
+		}
+		var FSPG_regex = new RegExp("chartFSPG"); //Regex for Fold Change Study per Gene
+		if (FSPG_regex.test(n)== true) {
+			$("title").html("Fold Change by Study");
+			response2 = sessionStorage.getItem("FCLine");
+			response8 = sessionStorage.getItem("Response8");
+			counts = JSON.parse(response2);
+			genes = JSON.parse(response8);
+			parseFCStudyPerGene (counts, genes);
+		}
+		<!--console.log(response);-->
+		if (n == "DPI") {
+			$("title").html("Fold Change per Day Post-Infection Per Gene");
+			parse_heatmap("DPI");
+		}
+		if (n == "DS") {
+			$("title").html("Fold Change Per Dataset Per Gene");
+			parse_heatmap("DS");
+		}
+		if (n == "micro_chartA") {
+			$("title").html("Expression Pattern Over Time");
+			Response14 = JSON.parse(sessionStorage.getItem("Response14"));
+			console.log(Response14);
+			draw_micro_count_line(Response14);
+		}
+		}
+		</script>
+		<script type="text/javascript">
+		function drawCountLine(countData) {
+		$(function () {
+			$('#chart').highcharts({
+        title: {
+            text: 'Expression Pattern Over Time',
+            x: -20 //center
+        },
+        subtitle: {
+            text: '',
+            x: -20
+        },
+        xAxis: {
+			title : {
+				text: 'Days Post Infection'
+			},
+            categories: [0,1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        },
+        yAxis: {
+            title: {
+                text: 'log2(Counts per million)'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }]
+        },
+
+		plotOptions: {
+            series: {
+                connectNulls: true
+            }
+        },
+
+        tooltip: {
+            valueSuffix: ''
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0,
+            <!--width: 10-->
+        },
+		chart: {
+				height:null,
+				width:null
+		},
+        series: countData,
+		});
+		});
+		}
+		</script>
+		<script type="text/javascript">
+			function parseCountsGenePerStudy (counts, studies) {
+				//console.log(counts)
+				//console.log(studies)
+				var div_list;
+				var relevant_counts;
+				div_list = ["chartCGS1","chartCGS2", "chartCGS3","chartCGS4","chartCGS5"];
+				for (var i = 0; i < studies.length; i++) {
+					relevant_counts = [];
+					for (var j = 0; j < counts.length; j++) {
+						//console.log(counts[j]);
+						var jsonobject = JSON.stringify(counts[j]);
+						var result = jsonobject.indexOf(studies[i]) > -1;
+						var res2 = relevant_counts.indexOf(counts[j]) > -1;
+						if (result == true) {
+							if (res2 == false) {
+								relevant_counts.push(counts[j]);
+							}
+						}
+					}
+
+					//console.log(relevant_counts);
+					div = 'chartCGS' + i;
+
+					$(".chart").append("<div id = '" + div + "'></div>");
+					//console.log(div);
+					//console.log(studies[i]);
+					//draw counts here wen relevant_counts is done being made
+					drawCountsGenePerStudy(relevant_counts, div);
+				}
+			}
+			function drawCountsGenePerStudy (countData, div) {
+			//console.log(countData);
+			//console.log(div);
+			$(function () {
+				$('#' + div).highcharts({
+			title: {
+				text: 'Expression Pattern Over Time',
+				x: -20 //center
+			},
+			subtitle: {
+				text: '',
+				x: -20
+			},
+			xAxis: {
+				title : {
+					text: 'Days Post Infection'
+				},
+				categories: [0,1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+			},
+			yAxis: {
+				title: {
+					text: 'log2(Counts per million)'
+				},
+				plotLines: [{
+					value: 0,
+					width: 1,
+					color: '#808080'
+				}]
+			},
+
+			plotOptions: {
+				series: {
+					connectNulls: true
+				}
+			},
+
+			tooltip: {
+				valueSuffix: ''
+			},
+			legend: {
+				layout: 'vertical',
+				align: 'right',
+				verticalAlign: 'middle',
+				borderWidth: 0,
+			},
+			chart: {
+		 	},
+			series: countData,
+			});
+			});
+			}
+		</script>
+		<script type="text/javascript">
+		function parseCountsStudyPerGene (counts, genes) {
+			//console.log(counts)
+			//console.log(studies)
+			var div_list;
+			var relevant_counts;
+			var x = 0;
+			div_list = ["chartSBG1","chartSBG2", "chartSBG3","chartSBG4","chartSBG5"];
+			for (var i = 0; i < genes.length; i++) {
+				relevant_counts = [];
+				for (var j = 0; j < counts.length; j++) {
+					//console.log(counts[j]);
+					var jsonobject = JSON.stringify(counts[j]);
+					var result = jsonobject.indexOf(genes[i]) > -1;
+					var res2 = relevant_counts.indexOf(counts[j]) > -1;
+					if (result == true) {
+						if (res2 == false) {
+							relevant_counts.push(counts[j]);
+						}
+					}
+				}
+
+				//console.log(relevant_counts);
+				if (relevant_counts.length > 0){
+					//console.log(relevant_counts);
+					div = 'chartSBG' + i;
+
+				$(".chart").append("<div id = '" + div + "'></div>");
+					//console.log(div);
+					//console.log(studies[i]);
+					//draw counts here wen relevant_counts is done being made
+					drawCountsStudyPerGene(relevant_counts, div);
+
+					//increment x
+					x++;
+				}
+			}
+		}
+		function drawCountsStudyPerGene (countData, div) {
+		//console.log(countData);
+		//console.log(div);
+		$(function () {
+			$('#' + div).highcharts({
+        title: {
+            text: 'Expression Pattern Over Time',
+            x: -20 //center
+        },
+        subtitle: {
+            text: '',
+            x: -20
+        },
+        xAxis: {
+			title : {
+				text: 'Days Post Infection'
+			},
+            categories: [0,1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        },
+        yAxis: {
+            title: {
+                text: 'log2(Counts per million)'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }]
+        },
+
+		plotOptions: {
+            series: {
+                connectNulls: true
+            }
+        },
+
+        tooltip: {
+            valueSuffix: ''
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0
+        },
+		chart: {
+		 },
+        series: countData,
+		});
+		});
+		}
+		</script>
+		<!---COUNTS CHART ENDS HERE--->
+		<!---FC CHART STARTS HERE---->
+		<script type="text/javascript">
+		function drawFCLine(FCData) {
+		$(function () {
+			$('#chart').highcharts({
+        title: {
+            text: 'Fold Change over Time',
+            x: -20 //center
+        },
+        subtitle: {
+            text: '',
+            x: -20
+        },
+        xAxis: {
+			title : {
+				text: 'Days Post Infection'
+			},
+            categories: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+        },
+        yAxis: {
+            title: {
+                text: 'log2FC'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }]
+        },
+
+		plotOptions: {
+            series: {
+                connectNulls: true
+            }
+        },
+
+        tooltip: {
+            valueSuffix: ''
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0
+        },
+		chart: {
+		 },
+        series: FCData,
+		});
+		});
+		}
+		</script>
+		<script type="text/javascript">
+		function parseFCGenePerStudy (counts, studies) {
+			//console.log(counts)
+			//console.log(studies)
+			var div_list;
+			var relevant_counts;
+			div_list = ["chartFPS1","chartFPS2", "chartFPS3","chartFPS4","chartFPS5"];
+			for (var i = 0; i < studies.length; i++) {
+				relevant_counts = [];
+				for (var j = 0; j < counts.length; j++) {
+					//console.log(counts[j]);
+					var jsonobject = JSON.stringify(counts[j]);
+					var result = jsonobject.indexOf(studies[i]) > -1;
+					var res2 = relevant_counts.indexOf(counts[j]) > -1;
+					if (result == true) {
+						if (res2 == false) {
+							relevant_counts.push(counts[j]);
+						}
+					}
+				}
+
+				//console.log(relevant_counts);
+				div = 'chartFPS' + i;
+
+				$(".chart").append("<div id = '" + div + "'></div>");
+				//console.log(div);
+				//console.log(studies[i]);
+				//draw counts here wen relevant_counts is done being made
+				drawFCGenePerStudy(relevant_counts, div);
+			}
+		}
+		function drawFCGenePerStudy (countData, div) {
+		//console.log(countData);
+		//console.log(div);
+		$(function () {
+			$('#' + div).highcharts({
+        title: {
+            text: 'Fold Change Over Time',
+            x: -20 //center
+        },
+        subtitle: {
+            text: '',
+            x: -20
+        },
+        xAxis: {
+			title : {
+				text: 'Days Post Infection'
+			},
+            categories: [0,1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        },
+        yAxis: {
+            title: {
+                text: 'Counts'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }]
+        },
+
+		plotOptions: {
+            series: {
+                connectNulls: true
+            }
+        },
+
+        tooltip: {
+            valueSuffix: ''
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0
+        },
+		chart: {
+		 },
+        series: countData,
+		});
+		});
+		}
+		</script>
+		<script type="text/javascript">
+		function parseFCStudyPerGene (counts, genes) {
+			//console.log(counts)
+			//console.log(studies)
+			var div_list;
+			var relevant_counts;
+
+			//outside incrementer
+			var x = 0;
+
+			div_list = ["chartFSPG1","chartFSPG2", "chartFSPG3","chartFSPG4","chartFSPG5"];
+			for (var i = 0; i < genes.length; i++) {
+				relevant_counts = [];
+				for (var j = 0; j < counts.length; j++) {
+					//console.log(counts[j]);
+
+					//stringify results and store into variable
+					var jsonobject = JSON.stringify(counts[j]);
+
+					//check if the name of the gene is in the jsonobject
+					var result = jsonobject.indexOf(genes[i]) > -1;
+
+					//check if the data isn't already in relevant counts
+					var res2 = relevant_counts.indexOf(counts[j]) > -1;
+					if (result == true) {
+						if (res2 == false) {
+							relevant_counts.push(counts[j]);
+						}
+					}
+				}
+
+
+				//console.log(relevant_counts)
+				if (relevant_counts.length > 0){
+					//console.log(relevant_counts);
+					div = 'chartFSPG' + i;
+
+					$(".chart").append("<div id = '" + div + "'></div>");
+					//console.log(div);
+					//console.log(studies[i]);
+					//draw counts here wen relevant_counts is done being made
+					drawFCStudyPerGene(relevant_counts, div);
+
+					//increment x
+					x++;
+				}
+			}
+		}
+		function drawFCStudyPerGene (countData, div) {
+		//console.log(countData);
+		//console.log(div);
+		$(function () {
+			$('#' + div).highcharts({
+        title: {
+            text: 'Fold Change Over Time',
+            x: -20 //center
+        },
+        subtitle: {
+            text: '',
+            x: -20
+        },
+        xAxis: {
+			title : {
+				text: 'Days Post Infection'
+			},
+            categories: [0,1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        },
+        yAxis: {
+            title: {
+                text: 'log2FC'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }]
+        },
+
+		plotOptions: {
+            series: {
+                connectNulls: true
+            }
+        },
+
+        tooltip: {
+            valueSuffix: ''
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0
+        },
+		chart: {
+		 },
+        series: countData,
+		});
+		});
+		}
+		</script>
+		<script type="text/javascript">
+		//Parses data to pass to heatmap function
+		function parse_heatmap (type){
+			var element =  '#chart';
+			if (type == "DPI"){
+				var by_study = format_data("Response11");
+				var heatmap_full_study = by_study[0];
+				var studynames_by_study = by_study[1];
+				var genes = by_study[2];
+				var highest_val = by_study[3];
+				var title = 'Fold Change per Day Post-Infection per Gene in Search';
+				draw_Study_Heatmap(genes, heatmap_full_study, studynames_by_study, highest_val, title, element);
+				}
+			if (type == "DS"){
+				var by_day = format_data("Response12");
+				var heatmap_full_day = by_day[0];
+				var studynames_by_day = by_day[1];
+				var genes = by_day[2];
+				var highest_val = by_day[3];
+				var title = 'Fold Change per Dataset per Gene in Search';
+				draw_Study_Heatmap(genes, heatmap_full_day, studynames_by_day, highest_val, title, element);
+				}
+		}
+		function format_data(data){ //Formats data received from python
+			<!--var DPI = localStorage.getItem("Response11");--> // Debug data
+			var DPI = sessionStorage.getItem(data);
+			DPI = JSON.parse(DPI);
+			var heatmap= DPI[0];
+			var studynames= DPI[1];
+			var genes = DPI[2];
+			var highest_val = DPI[3];
+			return [heatmap, studynames, genes, highest_val]
+		}
+		</script>
+		<script type = "text/javascript">
+		// Draws 1st heatmap
+		function draw_Study_Heatmap (DPI_y_cats, DPI_hm, DPI_x_cat, legend, title, element) {
+			<!--console.log(DPI_hm, DPI_x_cat);-->
+			$(function () {
+				$(element).highcharts({
+					chart: {
+						<!--reflow: false,-->
+						type: 'heatmap',
+						marginTop: 40,
+						marginBottom: 100,
+						<!--marginLeft:0,-->
+						<!--marginRight:0,-->
+
+						// Edit chart spacing
+						spacingBottom: 0,
+						spacingTop: 0,
+						<!--spacingLeft: 0,-->
+						<!--spacingRight: 0,-->
+
+						// Explicitly tell the width and height of a chart
+						width: null,
+						height: null,
+
+						plotBorderColor: '#000000',
+					 	plotBorderWidth: 1,
+					 	borderWidth:0
+					},
+
+				 	credits: {
+				  		enabled: false
+				  	},
+
+					title: {
+						text: title,
+						<!--text: Title,-->
+						style: {
+						<!--color: '#FF00FF',-->
+						fontWeight: 'bold',
+						fontSize: '1.3em'
+						}
+					},
+
+					xAxis: [{
+						categories: DPI_x_cat,
+						<!--categories: [0,1,2,3],-->
+						visible: true,
+						labels:{
+							style: {
+								<!--color: '#FF00FF',-->
+								<!--fontWeight: 'bold',-->
+								fontSize: '0.8em'
+							}
+						}
+					}],
+
+					yAxis: {
+						categories: DPI_y_cats,
+						<!--title: null,-->
+						<!--visible: false-->
+						labels:{
+							style: {
+								<!--color: '#FF00FF',-->
+								<!--fontWeight: 'bold',-->
+								fontSize: '1em'
+							}
+						}
+					},
+
+					colorAxis: {
+						stops: [
+							[0, '#3060cf'],
+							[0.5, '#ffffff'],
+							[0.9, '#c4463a']
+						],
+						min: -legend,
+						max: legend,
+						<!--minorTickInterval: 1,-->
+						endOnTick: 0,
+						startOnTick: 0
+					},
+
+					legend: {
+						<!--enabled: false,-->
+						align: 'right',
+						layout: 'vertical',
+						margin: 0,
+						verticalAlign: 'top',
+						y: 25,
+						symbolHeight: 320
+					},
+
+					tooltip: {
+						formatter: function () {
+							return this.series.xAxis.categories[this.point.x] +"<br>" +
+							 this.series.yAxis.categories[this.point.y] + "<br>" + this.point.value;
+						}
+					},
+
+					series: [{
+						<!--name: 'Sales per employee',-->
+						borderWidth: 1,
+						data: DPI_hm,
+						dataLabels: {
+							enabled: false,
+							color: 'black',
+							style: {
+								textShadow: 'none'
+							}
+						}
+					}]
+
+				});
+			});
+		}
+	</script>
+		<script type="text/javascript">
+		function draw_micro_count_line(countData) {
+		$(function () {
+			$('#chart').highcharts({
+		title: {
+			text: 'Expression Pattern Over Time',
+			x: -20 //center
+		},
+		subtitle: {
+			text: '',
+			x: -20
+		},
+		xAxis: {
+			title : {
+				text: 'Days Post Infection'
+			},
+			categories: [0,1,2,3,4,5,6]
+		},
+		yAxis: {
+			title: {
+				text: 'Normalized flouresence intensity'
+			},
+			plotLines: [{
+				value: 0,
+				width: 1,
+				color: '#808080'
+			}]
+		},
+
+		plotOptions: {
+			series: {
+				connectNulls: true
+			}
+		},
+
+		tooltip: {
+			valueSuffix: ''
+		},
+		legend: {
+			layout: 'vertical',
+			align: 'right',
+			verticalAlign: 'middle',
+			//floating: true,
+			//y: 30,
+			borderWidth: 0,
+			<!--width: 10-->
+		},
+		chart: {
+				//height:null,
+				//width:null
+		},
+		series: countData,
+		});
+		});
+		}
+		</script>
+    </head>
+	<body onload="loadchart(type)">
+	<div class="chart" id="chart"></div>
+	</body>
+
+</html>

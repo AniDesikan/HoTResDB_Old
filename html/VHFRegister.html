@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+	<!--Load css sheets-->
+	<!--<link rel="stylesheet" type="text/css" href = "VHFstyle.css">-->
+	<link rel="stylesheet" type="text/css" href = "css/VHFquerystyle.css">
+
+	    <!--Load jquery api-->
+	<script type="text/javascript" src="/jquery-1.11.0.js" ></script>
+	<script type="text/javascript" 	src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+
+    <!--Load jquery ui api-->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+	<script src="js/hotresdb.js">	</script>
+
+	<!-- Google Analytics --->
+		<script>
+		  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+		  ga('create', 'UA-80347666-1', 'auto');
+		  ga('send', 'pageview');
+
+		</script>
+		<!--- End Google Analytics -->
+
+	<!----ReCAPTCHA---->
+	<script src='https://www.google.com/recaptcha/api.js'></script>
+
+
+    <!--Register Function-->
+    <script type="text/javascript">
+    $(document).ready(function() {
+        // Use the form submit button to register user
+        $( "form" ).on( "submit", function( event ){
+            console.log("TEST");
+            //Don't refresh page on submitting
+            event.preventDefault();
+            data =$( this ).serialize();
+            formdata =$("form").serialize();
+            var uname =$("#uname").val();
+            var pword =$("#pword").val();
+            console.log(data);
+            console.log(formdata);
+            Register(data);
+            console.log(uname,pword);
+            if (uname !="" && pword!=""){
+            console.log("Email sent");
+            Email(data);
+            }
+        });
+    });
+
+    //Email Admin
+    function Email(formdata) {
+    var request2=$.ajax({
+     type: "POST",
+     url: "/mail_handler.php",
+     data: formdata,
+     success: function(response){ //Function to run once we get our response
+     //console.log data for debugging
+        //NO FUNCTION SO FAR//
+        console.log(response);
+        console.log("success");
+        },
+     error: function(data, status){
+        console.log(status);
+        console.log(data);
+        $("#error").html(data['responseText']);
+        console.log("Something went wrong");
+        response(data);
+        },
+    });
+    };
+
+    //Registers the User
+	function Register(data) {
+	console.log(data);
+	var request = $.ajax({
+		type: "POST",
+		url: "/cgi-bin/register.py", //CGI script where the response to our request comes from
+		data: data, //Hands off the contents of the form
+		//&lt;!&ndash;dataType: "json", //expect JSON data to be returned&ndash;&gt;
+		success: function(response){ //Function to run once we get our response
+		 //console.log data for debugging
+		    //NO FUNCTION SO FAR//-->
+			console.log(response);
+			console.log("success");
+		},
+		error: function(data, status){
+			console.log(status);
+			console.log(data);
+			$("#error").html(data['responseText']);
+            console.log("Something went wrong");
+			response(data);
+		},
+		});
+		//In case of failure
+		request.fail(function(jqHXR, textStatus) {
+			// Prints python error in div
+			$("#error").html(jqHXR.responseText);
+			});
+		};
+	</script>
+	<script type="text/javascript">
+	function checkPass()
+	{
+		 //Store the password field objects into variables ...
+		var pass1 = document.getElementById('pword');
+		var pass2 = document.getElementById('pass2');
+		//Store the Confimation Message Object ...
+		var message = document.getElementById('confirmMessage');
+		//Set the colors we will be using ...
+		var goodColor = "#BCED91";
+		var badColor = "#FFC1C1";
+		//Compare the values in the password field 
+		//and the confirmation field
+		if(pass1.value == pass2.value){
+			//The passwords match. 
+			//Set the color to the good color and inform
+			//the user that they have entered the correct password 
+			pass2.style.backgroundColor = goodColor;
+			//message.style.color = goodColor;
+			message.innerHTML = ""
+		}else{
+			//The passwords do not match.
+			//Set the color to the bad color and
+			//notify the user.
+			pass2.style.backgroundColor = badColor;
+			//message.style.color = badColor;
+			message.innerHTML = "Passwords do not match! "
+		}
+	}
+	</script>
+
+	<script type = "text/javascript">
+		//Get Cookie
+		function getCookie(username) {
+		var name = username + "=";
+		var ca = document.cookie.split(';');
+		console.log(ca);
+		for(var i = 0; i < ca.length; i++) {
+			var c = ca[i];
+			while (c.charAt(0) == ' ') {
+				c = c.substring(1);
+			}
+			if (c.indexOf(name) == 0) {
+				return c.substring(name.length, c.length);
+			}
+		}
+		return "";
+		}
+
+		//Checks cookie
+		function checkCookie() {
+			var username=getCookie("username");
+			if (username!="") {
+				$(".topcorner").html("Welcome " + username);
+			}
+		return username;
+		}
+		//Checks User Cookie
+		function CheckUser() {
+			var username=getCookie("username");
+			if (username!="") {
+				$(".topcorner").html("Welcome " + username);
+				console.log(username);
+			}
+		return username;
+		}
+	document.getElementById("submit_button").disabled = true;
+	function enable_button(){
+		document.getElementById("submit_button").disabled = false;
+	}
+
+	function get_action(form) 
+	{
+		var v = grecaptcha.getResponse();
+		if(v.length == 0)
+		{
+			//alert("Please complete captcha.")
+			document.getElementById('captcha').innerHTML="You can't leave Captcha Code empty";
+			return false;
+		}
+		//else
+		//{
+		//	document.getElementById('captcha').innerHTML="Captcha completed";
+		//	return true; 
+		//}
+	}
+
+	</script>
+
+	</head>
+	<body onload = "CheckUser()">
+		<div id="top_grad"></div>
+		<!-- Start container here NEEDS TO BE DONE -->
+		<div class="put_maincontainerhere">
+		<div class="put_innercontainerhere ">
+			<div id = "pageHeader">
+				<!-- Website header-->
+				<!---h1>HoTRes<a style="color:#3333ff;">DB</a></h1--->
+				<img id = "logo" src="./img/HoTResDB_Logo_resize.PNG"/>
+				<div class ="landinglogin">
+					<form>
+						<button type="button" id="login_button" onclick="location.href='VHFLogin.html';">Login</button>
+						<!-- Redirect to the login page when clicked -->
+						<button type="button" onclick="location.href='VHFRegister.html';">Register</button>
+						<!-- Redirect to the register page when clicked -->
+					</form>
+				</div>
+			</div>
+		<div id ="navcontainer">
+		<!-- Navigation bar -->
+		<ul>
+			<li>
+				<a href="index.html">Home</a>
+			</li>
+			<li>
+				<a href="VHFQueries.html">Search</a>
+			</li>
+			<li>
+				<a href="VHFDataStats.html">Data Statistics</a>
+			</li>
+			<li>
+				<a href="VHFHelp.html">Help</a>
+			</li>
+			<li>
+				<a href="VHFContact.html">Contact Us</a>
+			</li>
+			<li>
+				<a href="VHFContributor.html">Contributors</a>
+			</li>
+			<div class="topcorner"></div>
+		</ul>
+		</div> <!---END Navigation bar--->
+        <div id="error"></div>
+<body>
+	<form>
+        <div class = "search_data_outer_div">
+		<div>Username:</div>
+            <div class="search"><input type='text' id='uname' name='uname' value=""/> *</div>
+		<div>Password:</div>
+            <div class="search"><input type='password' id='pword' name='pword' value=""/> *</div>
+		<div>Confirm Password:</div>
+            <div class="search"><input type='password' id='pass2' name='pass2' onkeyup = "checkPass(); return false;">
+			<span id = "confirmMessage" class = "confirmMessage"></span>*</div>
+		<div>First name:</div>
+            <div class="search"><input type='text' name='fname' value=""/></div>
+		<div>Last name:</div>
+            <div class="search"><input type='text' name='lname' value=""/></div>
+		<div>E-mail:</div>
+            <div class="search"><input type='text' name='email' value=""/></div>
+		<br>
+		<div class="g-recaptcha" id = "rcaptcha" data-sitekey="6Lc-4M8pAAAAALFIg7EkzNwZZ4tQiXMmzrk8O2zL"></div>
+		<span id = "captcha" style = "color:red"></span>
+		<br>
+		<div><input type="submit" name="submit" onclick = "get_action(this);" value="Register" id = "submit_button"></input></div>
+
+        <br>
+	<i style = "font-size: 11px;">*Fields cannot be empty</i>
+	<br>
+	
+        </div>
+	</form>
+</body>
+</html>

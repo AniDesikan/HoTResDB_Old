@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html>
+  <title>Search</title>
+  <head>
+    <!----Load CSS style sheets---->
+    <link rel="stylesheet" type="text/css" href="css/VHFquerystyle.css" />
+
+    <!----Load ajax---->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <!--<script src="js/jquery.min.js"></script>-->
+
+    <!----Load Jquery ui API---->
+    <link
+      rel="stylesheet"
+      href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"
+    />
+    <!--<link rel="stylesheet" href="css/jquery-ui.css">-->
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <!--<script src="js/jquery-1.10.2.js"></script>-->
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <!--<script src="js/jquery-ui.js"></script>-->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <!----Load HighCharts---->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <!--<script src="js/highcharts.js"></script>-->
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <!--<script src="js/highcharts-more.js"></script>-->
+    <script src="https://code.highcharts.com/modules/data.js"></script>
+    <!--<script src="js/data.js"></script>-->
+    <script src="https://code.highcharts.com/modules/heatmap.js"></script>
+    <!--<script src="js/heatmap.js"></script>-->
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <!--<script src="js/exporting.js"></script>-->
+
+    <!----Load KineticJS---->
+    <!--<script src="kinetic-v5.1.0.min.js"></script>-->
+    <!--<script src="kinetic-v5.1.0.js"></script>-->
+
+    <!----Load inCHLib---->
+    <!--<script src="inchlib-1.2.0.js"></script>-->
+
+    <!--- Import Hotresdb Scripts -->
+    <script src="js/hotresdb.js"></script>
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+      //Javascript to check if current server is development and assign google ID based on server type
+      var ID = "";
+      if (window.location.href.indexOf("development") > -1) {
+        ID = "";
+      } else {
+        ID = "UA-80347666-2";
+      }
+
+      window.ga =
+        window.ga ||
+        function () {
+          (ga.q = ga.q || []).push(arguments);
+        };
+      ga.l = +new Date();
+      ga("create", ID, "auto");
+      <!--console.log(ID);-->
+      ga("send", "pageview");
+    </script>
+    <script async src="https://www.google-analytics.com/analytics.js"></script>
+    <!--- End Google Analytics -->
+    <script type="text/javascript">
+      $(document).ready(function () {
+        $("[id^=FAQ]").click(function () {
+          var answerId = "#FAnswer" + this.id.substring(3);
+          $(answerId).slideToggle("fast");
+        });
+
+        // Check admin status on page load
+        logincheck();
+      });
+
+      // Function to get cookie by name
+      function getCookie(name) {
+        let matches = document.cookie.match(
+          new RegExp(
+            "(?:^|; )" +
+              name.replace(/([.$?*|{}()[]\\\/+^])/g, "\\$1") +
+              "=([^;]*)"
+          )
+        );
+        return matches ? decodeURIComponent(matches[1]) : undefined;
+      }
+
+      // Check if user is admin
+      function admincheck(data) {
+        $.ajax({
+          type: "POST",
+          url: "/cgi-bin/adminstatus.py",
+          data: data,
+          dataType: "json",
+          success: function (response) {
+            let bool = response[0][0];
+            adminstate(bool);
+          },
+          error: function (response, data, status) {
+            console.log(response);
+            console.log(status);
+            console.log(data);
+            $("#error").html(response["responseText"]);
+          },
+        });
+      }
+
+      // On page load, check if user is admin
+      function logincheck() {
+        var username = getCookie("username");
+        console.log(username);
+        if (username != "") {
+          var data = "&username=" + encodeURIComponent(username);
+          admincheck(data);
+          // Hide register button
+          document.getElementById("register_button").style.display = "none";
+        } else {
+          // Show register button
+          document.getElementById("register_button").style.display = "block";
+          document.getElementById("user-access-link").style.display = "none";
+          document.getElementById("enter-data").style.display = "none";
+        }
+      }
+
+      // Update the UI based on admin status
+      function adminstate(bool) {
+        if (bool === "Yes") {
+          document.getElementById("user-access-link").style.display = "block";
+          document.getElementById("enter-data").style.display = "block";
+        } else {
+          document.getElementById("user-access-link").style.display = "none";
+        }
+      }
+    </script>
+  </head>
+
+  <body
+    onload="CheckLogin(), checkcart(), checksamplecart(), uncheckAll(), ClearStorage(), load_highchart()"
+  >
+    <img src="./img/loading.gif" style="display: none" id="loading_image" />
+    <div id="top_grad"></div>
+    <!-- Start container here NEEDS TO BE DONE -->
+    <div class="put_maincontainerhere"></div>
+    <div class="put_innercontainerhere"></div>
+    <div id="pageHeader">
+      <!-- Website header-->
+      <!---h1>HoTRes<a style="color:#3333ff;">DB</a></h1--->
+      <img id="logo" src="./img/HoTResDB_Logo_resize.PNG" />
+      <div class="landinglogin">
+        <form>
+          <button id="login_button" href="VHFLogin.html">Login</button>
+          <!----Take user to cgi page to register,---->
+          <!----so password can be hashed right away---->
+          <button id="register_button" formaction="VHFRegister.html">
+            Register
+          </button>
+        </form>
+      </div>
+    </div>
+    <div id="navcontainer">
+      <!-- Navigation bar -->
+      <ul>
+        <li>
+          <a href="index.html">Home</a>
+        </li>
+        <li>
+          <a href="VHFQueries.html">Search</a>
+        </li>
+        <li>
+          <a href="VHFDataStats.html">Data Statistics</a>
+        </li>
+        <li>
+          <a href="VHFHelp.html">Help</a>
+        </li>
+        <li>
+          <a href="VHFContact.html">Contact Us</a>
+        </li>
+        <li>
+          <a href="VHFContributor.html">Contributors</a>
+        </li>
+        <li></li>
+        <li id="user-access-link" style="display: none">
+          <a href="VHFUserAccess.html">User Access</a>
+        </li>
+        <li id="enter-data" style="display: none">
+          <a href="VHFEnterDataForm.html">Enter Data</a>
+        </li>
+        <div class="topcorner"></div>
+      </ul>
+    </div>
+    <!---END Navigation bar--->
+    <div
+      id="microarray_alert"
+      class="search_field_row"
+      style="text-align: center; padding: 10px"
+    >
+      Please allow a few extra moments for microarray results to appear.
+    </div>
+    <div class="topcorner"></div>
+    <div class="sidebar_outer">
+      <div class="helpbox_outer_div">
+        <div class="helpbox_padding">
+          <div class="help_table">
+            <div class="sidebar_header">First time here?</div>
+            <div class="sidebar">
+              - Click <a target="_blank" href="VHFHelp.html">here</a> for
+              help.<br />
+              -
+              <u style="cursor: pointer" onclick="fillExample();"
+                >Example Search</u
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="s_cart_outer_div">
+        <div class="helpbox_padding">
+          <div class="sidebar_header">Data Cart</div>
+          <div class="sidebar" id="sidebar_modifiers">
+            <div class="samplecart" id="sidebar_inner_ebola">Loading..</div>
+          </div>
+          <div class="sidebar_button">
+            <input
+              type="button"
+              value="Clear Cart"
+              onclick="resetsamplecart()"
+            />
+          </div>
+        </div>
+      </div>
+      <form id="searchGene" name="CARTform">
+        <div class="cart_outer_div">
+          <div class="helpbox_padding">
+            <div class="sidebar_header">Gene Cart</div>
+            <div class="sidebar">
+              <div class="cart" id="sidebar_inner"></div>
+            </div>
+            <div class="sidebar_button">
+              <input type="button" value="Clear Cart" onclick="resetcart()" />
+            </div>
+            <div class="sidebar_button">
+              <input
+                type="button"
+                value="Go To Search"
+                onclick="carttosamples(), carttosearch(), $('#tabs').tabs('option', 'active', 0);"
+              />
+            </div>
+          </div>
+        </div>
+      </form>
+      <!--<input type="button" onclick="reloadcss()" value="Reload Css">-->
+    </div>
+    <!-- </div> -->
+    <div id="tabs" style="width: 70%">
+      <ul>
+        <li>
+          <a
+            href="#tabs-1"
+            class="expand_collapse"
+            onclick="carttosamples(), carttosearch()"
+            >Execute Search</a
+          >
+        </li>
+        <li>
+          <a href="#tabs-2" class="expand_collapse" onclick="checkcart()"
+            >Add Genes</a
+          >
+        </li>
+        <li>
+          <a href="#tabs-8" class="expand_collapse" onclick="checksamplecart()"
+            >Add Datasets</a
+          >
+        </li>
+        <li><a href="#tabs-3" class="expand_collapse">Search Results</a></li>
+        <li>
+          <a href="#tabs-4" class="expand_collapse_small">Expression Data</a>
+        </li>
+        <li>
+          <a href="#tabs-5" class="expand_collapse_small">Counts Graphs</a>
+        </li>
+        <li>
+          <a href="#tabs-6" class="expand_collapse_small">Fold Change Graphs</a>
+        </li>
+        <li><a href="#tabs-7" class="expand_collapse_small">Heat Maps</a></li>
+        <li>
+          <a href="#tabs-9" class="expand_collapse_small"> Browse/Enter Data</a>
+        </li>
+        <!-- <li><a href="#tabs-9" class = "expand_collapse_small">Box Plot</a></li> -->
+      </ul>
+      <div id="tabs-1">
+        <!----Search Form starts here---->
+        <!----NOT FINAL, needs editing---->
+        <div>
+          <form id="searchGene" name="VHFform">
+            <div class="search_data_outer_div" id="outer">
+              <div class="search_field_row">
+                <h3>Data for new users:</h3>
+                <input
+                  type="button"
+                  value="Add Ebola Dataset"
+                  onclick="addtosamplecart('EBOV_PBMC_Aerosol_RNASeq'), checksamplecart(), carttosamples()"
+                />
+                <input
+                  type="button"
+                  value="Add Lassa Dataset"
+                  onclick="addtosamplecart('LASV_PBMC_RNASeq'), checksamplecart(), carttosamples()"
+                />
+                <input
+                  type="button"
+                  value="Add Marburg Dataset"
+                  onclick="addtosamplecart('MARV_PBMC_RNASeq'), checksamplecart(), carttosamples()"
+                />
+                <input
+                  type="button"
+                  value="Add Example Genes"
+                  onclick="addtocart('isg15'), addtocart('irf3'), addtocart('cxcl10'), addtocart('stat1'), checkcart(), carttosearch()"
+                />
+              </div>
+
+              <div class="text_searcharea">
+                <div class="search_field_row">
+                  <div class = "search_field_title left" id =>Gene Symbol List:
+                </div>
+                <div class="search_field_list">
+                  <textarea
+                    id="gene_inner"
+                    name="genes"
+                    cols="80"
+                    rows="5"
+                    class="input_textarea"
+                  ></textarea>
+                  <br />
+                  <p>
+                    (eg: isg15, cxcl10, stat1 Separated by space, tab, or new
+                    line)
+                  </p>
+
+                  <div class="Pointer">
+                    <u onclick='$("#tabs").tabs("option", "active", 1);'
+                      >Need help finding a gene?</u
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="search_field_row">
+                <div class = "search_field_title left" id =>Dataset List:
+              </div>
+              <div class="search_field_list">
+                <textarea
+                  id="sample_inner"
+                  style="background-color: lightgrey"
+                  name="samples"
+                  cols="80"
+                  rows="5"
+                  class="input_textarea"
+                  readonly
+                ></textarea>
+                <br />
+                <div class="Pointer">
+                  <u onclick='$("#tabs").tabs("option", "active", 2);'
+                    >Need help finding a dataset?</u
+                  >
+                </div>
+              </div>
+            </div>
+
+            </div>
+            </div>
+            <div class="center_browse">
+              <input
+                type="checkbox"
+                id="include_survivors"
+                name="include_survivors"
+              />Include Survivors
+              <div class="search_field_title">
+                <input type="submit" value="Search" />
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <!---SEARCH FORM ENDS HERE---->
+      <div id="tabs-2">
+        <div class="gene_table_outer">
+          <div class="search_field_row browse_outer">
+            <div class="browse_inner">
+              <div class="search_field_title">
+                Enter a part of the Macaque or Human Gene Symbol, or of a Gene
+                Description:
+              </div>
+              <form id="GenSearch" name="GenSearch">
+                <!--Funky formatting, ie closing elements on next line, removes undesired spacing from inline-block-->
+                <select class="browse_operators" disabled></select
+                ><select class="browse_select">
+                  <option value="MMUgenePart">Macaque Gene Symbol</option>
+                  <option value="HumangenePart">Human Gene Symbol</option>
+                  <option value="DescgenePart" selected="selected">
+                    Gene Description
+                  </option>
+                  <option value="GOPart">Gene Ontology Term</option></select
+                ><input
+                  type="text"
+                  id="browse_search"
+                  class="browse_searchbar"
+                />
+                <div class="search_field_title">
+                  <input
+                    class="combined_search"
+                    type="submit"
+                    value="Search"
+                    onclick="deleteresults()"
+                  />
+                </div>
+                <input
+                  type="button"
+                  value="Add Search Term"
+                  onclick="addsearch(), move_search_button(this)"
+                  onclick="deleteresults()"
+                />
+              </form>
+            </div>
+            <!--<div class = "search_field_title"><input class = "combined_search" type = "submit" value ="Search" onclick = "deleteresults()"/></div>-->
+            <div class="search_field_title clear_table">
+              <input
+                type="button"
+                value="Clear Table"
+                onclick="deleteresults()"
+              />
+            </div>
+          </div>
+          <div class="search_field_row">
+            <div class="gene_table_header">Matching genes in the database</div>
+            <table id="search_result_table">
+              <thead>
+                <tr class="browse_table">
+                  <td>Macaque Ensembl ID</td>
+                  <td>Human Ensembl ID</td>
+                  <td>Macaque WikiGene ID</td>
+                  <td>Human WikiGene ID</td>
+                  <td>Gene Description</td>
+                  <td>Gene Ontology Term</td>
+                  <td>Gene Ontology Description</td>
+                  <td>Add to Cart</td>
+                  <!--<td>Studies Gene Appears in</td>-->
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div id="tabs-8">
+        <div class="gene_table_outer">
+          <div class="search_field_row browse_outer">
+            <div class="browse_inner">
+              <div class="search_field_title">
+                Search for a dataset of interest:
+              </div>
+
+              <form id="SampSearch" name="SampSearch">
+                <!--Funky formatting, ie closing elements on next line, removes undesired spacing from inline-block-->
+                <select name="strain" class="browse_select">
+                  <option value="All">All Strains</option>
+                  <option value="Mayinga">Ebola - Mayinga</option>
+                  <option value="Makona">Ebola - Makona</option>
+                  <option value="Kikwit">Ebola - Kikwit</option>
+                  <option value="Josiah">Lassa - Josiah</option>
+                  <option value="Z-132">Lassa - Z-132</option>
+                  <option value="Soromba">Lassa - Soromba</option>
+                  <option value="Angola">Marburg - Angola</option>
+                </select>
+                <select name="species" class="browse_select">
+                  <option value="All">All Species</option>
+                  <option value="Macaca mulatta">Macaca Mulatta</option>
+                  <option value="Macaca fascicularis">
+                    Macaca Fascicularis
+                  </option>
+                  <option value="Homo sapiens">Homo Sapiens</option>
+                </select>
+                <select name="sequencing_type" class="browse_select">
+                  <option value="All">All Data</option>
+                  <option value="RNAseq">RNAseq</option>
+                  <option value="Nanostring">Nanostring</option>
+                  <option value="Microarray">Microarray</option>
+                </select>
+                <div class="search_field_title">
+                  <input
+                    class="sample_search"
+                    type="submit"
+                    value="Search"
+                    onclick="deletesampleresults()"
+                  />
+                </div>
+              </form>
+            </div>
+            <div class="search_field_title clear_table">
+              <input
+                type="button"
+                value="Clear Table"
+                onclick="deletesampleresults()"
+              />
+            </div>
+          </div>
+          <div class="search_field_row">
+            <div class="sample_table_header">
+              Matching datasets in the database
+            </div>
+            <table id="search_result_table_samp">
+              <thead>
+                <tr class="browse_table">
+                  <td style="display: none" Sample>Dataset</td>
+                  <td>Virus</td>
+                  <td>Strain</td>
+                  <td>Species</td>
+                  <td>Tissue</td>
+                  <td>Exposure</td>
+                  <td>DataType</td>
+                  <td>Publication</td>
+                  <td>Add to Cart</td>
+                  <!--<td>Studies Gene Appears in</td>-->
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div id="tabs-3">
+        <div class="tab2_border">
+          <div class="search_field_row" style="font-size: 10pt; padding: 3px">
+            Genes in your search:
+            <table class="search_result_tab">
+              <thead>
+                <tr class="search_result_header">
+                  <td>Human Ensembl Id</td>
+                  <td>Human Gene Symbol</td>
+                  <td>Macaque Ensembl Id</td>
+                  <td>Macaque Gene Symbol</td>
+                  <td>GeneCards Link</td>
+                </tr>
+              </thead>
+              <tbody>
+                <tr></tr>
+              </tbody>
+            </table>
+            <i>N/A = Not available data</i>
+
+            <div id="emptyresultstable" style="width: 50%"></div>
+          </div>
+        </div>
+      </div>
+      <div id="tabs-4">
+        <div class="tab2_border">
+          <div id="container">
+            <div style="font-size: 10pt; padding: 3px" class="search_field_row">
+              <div>
+                <a class="table_title"
+                  >Expression Pattern Over Time (Counts Per Million) - Days Post
+                  Infection</a
+                ><br />
+                <div class="double-scroll" style="overflow-x: auto">
+                  <div class="tablediv2">
+                    <table class="search_result_tab2">
+                      <thead>
+                        <tr class="search_result_table_header">
+                          <td>Gene</td>
+                          <td>Virus</td>
+                          <td>Data Type</td>
+                          <td>Strain</td>
+                          <td>Study Name</td>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button id="gen_counts">Download CPM File</button>
+            <br />
+            <hr />
+            <div
+              style="font-size: 10pt; padding: 3px; overflow: auto"
+              class="search_field_row"
+            >
+              <div style="overflow: auto">
+                <a class="table_title"
+                  >Fold Change Over Time (Log2) - Days Post Infection</a
+                ><br />
+                <div class="tablewrapper1" style="overflow-x: auto">
+                  <div class="tablediv1" style="overflow: auto"></div>
+                </div>
+                <div class="tablewrapper2" style="overflow-x: auto">
+                  <div class="tablediv2" style="overflow: auto">
+                    <table class="search_result_tab3">
+                      <thead>
+                        <tr class="search_result_table_header">
+                          <td>Gene</td>
+                          <td>Virus</td>
+                          <td>Data Type</td>
+                          <td>Strain</td>
+                          <td>Study Name</td>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button id="gen_FC">Download Fold Change File</button>
+          </div>
+        </div>
+      </div>
+      <div id="tabs-5">
+        <div id="sub_tabs" class="tab2_border">
+          <ul>
+            <li>
+              <a href="#sub_tab1" class="tab2_button"
+                >Expression Pattern Over Time</a
+              >
+            </li>
+            <li><a href="#sub_tab2" class="tab2_button">Genes Per Study</a></li>
+            <li>
+              <a href="#sub_tab3" class="tab2_button">Study Results Per Gene</a>
+            </li>
+          </ul>
+        </div>
+        <!--<div style = "text-align: center;">All graphs show mean and standard error of the mean</div>-->
+        <div class="Content_Area">
+          <!------------------------------------------------------- Tab 1 ------------------------------------------>
+          <div class="tab2_border" id="sub_tab1">
+            <div class="new_window">
+              <input
+                type="button"
+                onclick="graph_window('chartA')"
+                value="Open in New Window"
+              />
+            </div>
+            <button id="toggle-legend-chartA" onclick="toggle_legend('A')">
+              Toggle Legend
+            </button>
+            <div class="disclaimer">
+              All graphs show mean and standard error of the mean
+            </div>
+            <!---div class="chart-wrapper"--->
+            <!--div class="chart-inner"-->
+            <div id="chartA"></div>
+            <!---/div>
+                        </div--->
+          </div>
+          <!------------------------------------------------------- Tab 2 ------------------------------------------->
+          <div class="tab2_border" id="sub_tab2">
+            <div class="new_window">
+              <input
+                type="button"
+                onclick="graph_window('chartCGS')"
+                value="Open in New Window"
+              />
+            </div>
+            <div class="disclaimer">
+              All graphs show mean and standard error of the mean
+            </div>
+            <div class="CBS" style="width: 100%; margin: 0 auto"></div>
+          </div>
+          <!------------------------------------------------------- Tab 3 ------------------------------------------->
+          <div class="tab2_border" id="sub_tab3">
+            <div class="new_window">
+              <input
+                type="button"
+                onclick="graph_window('chartSBG')"
+                value="Open in New Window"
+              />
+            </div>
+            <div class="disclaimer">
+              All graphs show mean and standard error of the mean
+            </div>
+            <div class="SBG"></div>
+          </div>
+        </div>
+      </div>
+      <div id="tabs-6">
+        <div id="sub_tabs_b" class="tab2_border">
+          <ul>
+            <li>
+              <a href="#sub_tab1b" class="tab2_button">Fold Change Over Time</a>
+            </li>
+            <li>
+              <a href="#sub_tab2b" class="tab2_button">Genes Per Study</a>
+            </li>
+            <li>
+              <a href="#sub_tab3b" class="tab2_button"
+                >Study Results Per Gene</a
+              >
+            </li>
+          </ul>
+        </div>
+        <div class="Content_Area_b">
+          <!------------------------------------------------------- Tab 1 ------------------------------------------>
+          <div id="sub_tab1b" class="tab2_border">
+            <div class="new_window">
+              <input
+                type="button"
+                onclick="graph_window('chartB')"
+                value="Open in New Window"
+              />
+            </div>
+            <button id="toggle-legend-chartB" onclick="toggle_legend('B')">
+              Toggle Legend
+            </button>
+            <div id="chartB"></div>
+          </div>
+          <!------------------------------------------------------- Tab 2 ------------------------------------------->
+          <div id="sub_tab2b" class="tab2_border">
+            <div class="new_window">
+              <input
+                type="button"
+                onclick="graph_window('chartFPS')"
+                value="Open in New Window"
+              />
+            </div>
+            <div class="FPS"></div>
+          </div>
+          <!------------------------------------------------------- Tab 3 ------------------------------------------->
+          <div id="sub_tab3b" class="tab2_border">
+            <div class="new_window">
+              <input
+                type="button"
+                onclick="graph_window('chartFSPG')"
+                value="Open in New Window"
+              />
+            </div>
+            <div class="FSPG"></div>
+          </div>
+        </div>
+      </div>
+      <div id="tabs-7">
+        <div id="sub_tabs_c" class="tab2_border">
+          <ul>
+            <li><a href="#sub_tab1c" class="tab2_button">DPI Heat Map</a></li>
+            <!-- <li > <a href="#sub_tab2c" class="tab2_button" >Dataset Heat Map</a> </li> -->
+          </ul>
+        </div>
+        <div class="Content_Area_c">
+          <div id="sub_tab1c" class="tab2_border">
+            <div class="new_window">
+              <input
+                type="button"
+                onclick="graph_window('DPI')"
+                value="Open in New Window"
+              />
+            </div>
+            <div id="heatmap_DPI" class="center fill_all"></div>
+          </div>
+          <div id="sub_tab2c" class="tab2_border">
+            <div class="new_window">
+              <input
+                type="button"
+                onclick="graph_window('DS')"
+                value="Open in New Window"
+              />
+            </div>
+            <div id="heatmap_DS" class="center fill_all"></div>
+          </div>
+        </div>
+      </div>
+      <div id="tabs-9">
+        <div id="sub_tabs_d" class="tab2_border">
+          <ul>
+            <li><a href="#sub_tab1d" class="tab2_button">Browse Experiments</a></li>
+            <li><a href="#sub_tab2d" class="tab2_button">Enter RNA Data</a></li>
+            <li><a href="#sub_tab3d" class="tab2_button">Enter Nanostring Data</a></li>
+          </ul>
+        </div>
+        <div class="Content_Area_d">
+          <div id="sub_tab1d" class="tab2_border">
+            <div id="boxplot_DPI_1" class="center fill_all"></div>
+            <div id="boxplot_DPI_2" class="center fill_all"></div>
+            <div id="boxplot_DPI_3" class="center fill_all"></div>
+            <div id="boxplot_DPI_4" class="center fill_all"></div>
+            <div id="boxplot_DPI_5" class="center fill_all"></div>
+            <div id="boxplot_DPI_6" class="center fill_all"></div>
+            <div id="boxplot_DPI_7" class="center fill_all"></div>
+            <div id="boxplot_DPI_8" class="center fill_all"></div>
+            <div id="boxplot_DPI_9" class="center fill_all"></div>
+            <div id="boxplot_DPI_10" class="center fill_all"></div>
+            <div id="boxplot_DPI_11" class="center fill_all"></div>
+            <div id="boxplot_DPI_12" class="center fill_all"></div>
+            <div id="boxplot_DPI_13" class="center fill_all"></div>
+            <div id="boxplot_DPI_14" class="center fill_all"></div>
+            <div id="boxplot_DPI_15" class="center fill_all"></div>
+          </div>
+
+          <div id="sub_tab2d" class="tab2_border">
+            <div id="mic_boxplot_DPI_1" class="center fill_all"></div>
+            <div id="mic_boxplot_DPI_2" class="center fill_all"></div>
+            <div id="mic_boxplot_DPI_3" class="center fill_all"></div>
+            <div id="mic_boxplot_DPI_4
+      </div>
+      
+    </div>
+    <div id="error"></div>
+    <!--<pre id="fileDisplayArea"><pre> -->
+
+    <!---COUNTS CHART STARTS HERE---->
+    <script type="text/javascript">
+
+      function drawCountLine(countData) {
+        $(function () {
+          var chartA = $("#chartA").highcharts(
+            {
+              title: {
+                text: "Expression Pattern Over Time",
+                x: -20, //center
+              },
+              subtitle: {
+                text: "",
+                x: -20,
+              },
+              xAxis: {
+                title: {
+                  text: "Days Post Infection",
+                },
+                categories: [
+                  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                ],
+              },
+              yAxis: {
+                title: {
+                  text: "log2(Counts per million)",
+                },
+                plotLines: [
+                  {
+                    value: 0,
+                    width: 1,
+                    color: "#808080",
+                  },
+                ],
+              },
+
+              plotOptions: {
+                series: {
+                  connectNulls: true,
+                },
+              },
+
+              tooltip: {
+                valueSuffix: "",
+              },
+              legend: {
+                layout: "vertical",
+                align: "right",
+                verticalAlign: "middle",
+                //floating: true,
+                //y: 30,
+                borderWidth: 0,
+
+              },
+              chart: {},
+              series: countData,
+            },
+            function (chartA) {
+              $("#toggle-legend-chartA").click(function () {
+
+              });
+            }
+          );
+        });
+      }
+    </script>
+
+    <!--- BOX PLOT STARTS HERE ---->
+    <script type="text/javascript">
+
+
+      Highcharts.setOptions({
+        colors: [
+          "rgba( 0,   154, 253, 0.9 )", //bright blue
+          "rgba( 253, 99,  0,   0.9 )", //bright orange
+          "rgba( 40,  40,  56,  0.9 )", //dark
+          "rgba( 253, 0,   154, 0.9 )", //bright pink
+          "rgba( 154, 253, 0,   0.9 )", //bright green
+          "rgba( 145, 44,  138, 0.9 )", //mid purple
+          "rgba( 45,  47,  238, 0.9 )", //mid blue
+          "rgba( 177, 69,  0,   0.9 )", //dark orange
+          "rgba( 140, 140, 156, 0.9 )", //mid
+          "rgba( 238, 46,  47,  0.9 )", //mid red
+          "rgba( 44,  145, 51,  0.9 )", //mid green
+          "rgba( 103, 16,  192, 0.9 )", //dark purple
+        ],
+      });
+
+      function getBoxValues(data) {
+        var boxValues = {};
+        boxValues.low = Math.min.apply(Math, data);
+        boxValues.q1 = getPercentile(data, 25);
+        boxValues.median = getPercentile(data, 50);
+        boxValues.q3 = getPercentile(data, 75);
+        boxValues.high = Math.max.apply(Math, data);
+        return boxValues;
+      }
+      //get any percentile from an array
+      function getPercentile(data, percentile) {
+        data.sort(function (a, b) {
+          return a - b;
+        });
+        var index = (percentile / 100) * data.length;
+        var result;
+        if (Math.floor(index) == index) {
+          result = (data[index - 1] + data[index]) / 2;
+        } else {
+          result = data[Math.floor(index)];
+        }
+        return result;
+      }
+
+      function getKeys(arr) {
+        return arr.map(function (e) {
+          return e.key;
+        });
+      }
+
+      function drawBoxPlot(data, div_id) {
+        // data: Response23 grouped by DPI
+        console.log(data);
+        var groupedByGene = groupByArray(data, "gene");
+        var groupedByStudy = groupByArray(data, "study");
+
+        var plot_categories = getKeys(groupedByStudy);
+        var gene_names = getKeys(groupedByGene);
+
+        var number_of_genes = groupedByGene.length;
+
+        var groupedByDPI = groupByArray(data, "DPI");
+        var plot_DPI = String(getKeys(groupedByDPI));
+        console.log("DPI", plot_DPI);
+
+        // groupedByStudy.forEach(function(study, index) {
+        //      var study_data = study.values.map(function(val) { return val.data });
+        //      var box_study_data = getBoxValues(study_data)
+        //      number_of_studies += 1
+        //      plot_data.push(box_study_data)
+        // })
+
+        $("#boxplot_DPI_" + div_id).highcharts({
+          legend: {
+            enabled: true,
+            layout: "vertical",
+            align: "right",
+            verticalAlign: "middle",
+          },
+          title: { text: plot_DPI + " Days Post Infection" },
+          xAxis: {
+            title: {},
+            categories: plot_categories,
+            labels: {
+              style: {
+                fontWeight: "bold",
+                fontSize: "10px",
+              },
+              rotation: -45,
+            },
+          },
+          yAxis: { title: { text: "log2(Counts per million)" } },
+        });
+        boxplot_DPI = $("#boxplot_DPI_" + div_id).highcharts();
+
+        for (var i = 0; i < number_of_genes; i++) {
+          console.log("number_of_genes: ", number_of_genes);
+          //generate random data, then calculate box plot values
+          var boxData = [];
+          var groupedByStudy = groupByArray(groupedByGene[i].values, "study");
+          console.log("groupedByStudy", groupedByStudy);
+
+          for (var j = 0; j < groupedByStudy.length; j++) {
+            var study_data = groupedByStudy[j].values;
+            var mapped_data = study_data.map(function (d) {
+              return d.data;
+            });
+            var box_study_data = getBoxValues(mapped_data);
+            boxData.push(box_study_data);
+          }
+          //add additional grouping within each group
+          //offset = (i < (numberOfSeries / 2) ? -0.05 : 0.05);
+          //add the data to the chart as a boxplot series
+          boxplot_DPI.addSeries({
+            name: gene_names[i],
+            type: "boxplot",
+            color: Highcharts.getOptions().colors[i],
+            fillColor: Highcharts.getOptions().colors[i],
+            data: boxData,
+          });
+        }
+      }
+
+      function drawBoxPlot_microarray(data, div_id) {
+        // data: Response23 grouped by DPI
+        console.log(data);
+        var groupedByGene = groupByArray(data, "gene");
+        var groupedByStudy = groupByArray(data, "study");
+
+        var plot_categories = getKeys(groupedByStudy);
+        var gene_names = getKeys(groupedByGene);
+
+        var number_of_genes = groupedByGene.length;
+
+        var groupedByDPI = groupByArray(data, "DPI");
+        var plot_DPI = String(getKeys(groupedByDPI));
+        console.log("DPI", plot_DPI);
+
+        // groupedByStudy.forEach(function(study, index) {
+        //      var study_data = study.values.map(function(val) { return val.data });
+        //      var box_study_data = getBoxValues(study_data)
+        //      number_of_studies += 1
+        //      plot_data.push(box_study_data)
+        // })
+
+        $("#mic_boxplot_DPI_" + div_id).highcharts({
+          legend: {
+            enabled: true,
+            layout: "vertical",
+            align: "right",
+            verticalAlign: "middle",
+          },
+          title: { text: plot_DPI + " Days Post Infection" },
+          xAxis: {
+            title: {},
+            categories: plot_categories,
+            labels: {
+              style: {
+                fontWeight: "bold",
+                fontSize: "10px",
+              },
+              rotation: -45,
+            },
+          },
+          yAxis: { title: { text: "Normalized Fluorescense Intensity" } },
+        });
+        boxplot_DPI = $("#mic_boxplot_DPI_" + div_id).highcharts();
+
+        for (var i = 0; i < number_of_genes; i++) {
+          console.log("number_of_genes: ", number_of_genes);
+          //generate random data, then calculate box plot values
+          var boxData = [];
+          var groupedByStudy = groupByArray(groupedByGene[i].values, "study");
+          console.log("groupedByStudy", groupedByStudy);
+
+          for (var j = 0; j < groupedByStudy.length; j++) {
+            var study_data = groupedByStudy[j].values;
+            var mapped_data = study_data.map(function (d) {
+              return d.data;
+            });
+            var box_study_data = getBoxValues(mapped_data);
+            boxData.push(box_study_data);
+          }
+          //add additional grouping within each group
+          //offset = (i < (numberOfSeries / 2) ? -0.05 : 0.05);
+          //add the data to the chart as a boxplot series
+          boxplot_DPI.addSeries({
+            name: gene_names[i],
+            type: "boxplot",
+            color: Highcharts.getOptions().colors[i],
+            fillColor: Highcharts.getOptions().colors[i],
+            data: boxData,
+          });
+        }
+      }
+    </script>
+
+    <script type="text/javascript">
+      function parseCountsGenePerStudy(counts, studies) {
+        //console.log(counts)
+        //console.log(studies)
+        var div_list;
+        var relevant_counts;
+        div_list = [
+          "chartCGS1",
+          "chartCGS2",
+          "chartCGS3",
+          "chartCGS4",
+          "chartCGS5",
+        ];
+        for (var i = 0; i < studies.length; i++) {
+          relevant_counts = [];
+          for (var j = 0; j < counts.length; j++) {
+            //console.log(counts[j]);
+            var jsonobject = JSON.stringify(counts[j]);
+            var result = jsonobject.indexOf(studies[i]) > -1;
+            var res2 = relevant_counts.indexOf(counts[j]) > -1;
+            if (result == true) {
+              if (res2 == false) {
+                relevant_counts.push(counts[j]);
+              }
+            }
+          }
+
+          //console.log(relevant_counts);
+          div = "chartCGS" + i;
+
+          $(".CBS").append("<div id = '" + div + "'></div>");
+          //console.log(div);
+          //console.log(studies[i]);
+          //draw counts here when relevant_counts is done being made
+          drawCountsGenePerStudy(relevant_counts, div);
+        }
+      }
+      function drawCountsGenePerStudy(countData, div) {
+        //console.log(countData);
+        //console.log(div);
+        $(function () {
+          $("#" + div).highcharts({
+            title: {
+              text: "Expression Pattern Over Time",
+              x: -20, //center
+            },
+            subtitle: {
+              text: "",
+              x: -20,
+            },
+            xAxis: {
+              title: {
+                text: "Days Post Infection",
+              },
+              categories: [
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+              ],
+            },
+            yAxis: {
+              title: {
+                text: "log2(Counts per million)",
+              },
+              plotLines: [
+                {
+                  value: 0,
+                  width: 1,
+                  color: "#808080",
+                },
+              ],
+            },
+
+            plotOptions: {
+              series: {
+                connectNulls: true,
+              },
+            },
+
+            tooltip: {
+              valueSuffix: "",
+            },
+            legend: {
+              layout: "vertical",
+              align: "right",
+              verticalAlign: "middle",
+              //floating: true,
+              //y: 30,
+              borderWidth: 0,
+            },
+            chart: {},
+            series: countData,
+          });
+        });
+      }
+    </script>
+    <script type="text/javascript">
+      function parseCountsStudyPerGene(counts, genes) {
+        //console.log(counts)
+        //console.log(studies)
+        var div_list;
+        var relevant_counts;
+        var x = 0;
+        for (var i = 0; i < genes.length; i++) {
+          relevant_counts = [];
+          for (var j = 0; j < counts.length; j++) {
+            //console.log(counts[j]);
+            var jsonobject = JSON.stringify(counts[j]);
+            var result = jsonobject.indexOf(genes[i]) > -1;
+            var res2 = relevant_counts.indexOf(counts[j]) > -1;
+            if (result == true) {
+              if (res2 == false) {
+                relevant_counts.push(counts[j]);
+              }
+            }
+          }
+
+          //console.log(relevant_counts);
+          if (relevant_counts.length > 0) {
+            //console.log(relevant_counts);
+            div = "chartSBG" + i;
+
+            $(".SBG").append("<div id = '" + div + "'></div>");
+            //console.log(div);
+            //console.log(studies[i]);
+            //draw counts here wen relevant_counts is done being made
+            drawCountsStudyPerGene(relevant_counts, div);
+
+            //increment x
+            x++;
+          }
+        }
+      }
+      function drawCountsStudyPerGene(countData, div) {
+        //console.log(countData);
+        //console.log(div);
+        $(function () {
+          $("#" + div).highcharts({
+            title: {
+              text: "Expression Pattern Over Time",
+              x: -20, //center
+            },
+            subtitle: {
+              text: "",
+              x: -20,
+            },
+            xAxis: {
+              title: {
+                text: "Days Post Infection",
+              },
+              categories: [
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+              ],
+            },
+            yAxis: {
+              title: {
+                text: "log2(Counts per million)",
+              },
+              plotLines: [
+                {
+                  value: 0,
+                  width: 1,
+                  color: "#808080",
+                },
+              ],
+            },
+
+            plotOptions: {
+              series: {
+                connectNulls: true,
+              },
+            },
+
+            tooltip: {
+              valueSuffix: "",
+            },
+            legend: {
+              layout: "vertical",
+              align: "right",
+              verticalAlign: "middle",
+              //floating: true,
+              //y: 30,
+              borderWidth: 0,
+            },
+            chart: {},
+            series: countData,
+          });
+        });
+      }
+    </script>
+    <!---COUNTS CHART ENDS HERE--->
+    <!---FC CHART STARTS HERE---->
+    <script type="text/javascript">
+      Highcharts.Legend.prototype.toggle = function () {
+        if (this.display) {
+          this.group.hide();
+        } else {
+          this.group.show();
+        }
+        this.display = !this.display;
+        this.chart.isDirtyBox = true;
+        this.chart.redraw();
+      };
+
+      function drawFCLine(FCData) {
+        $(function () {
+          var chartB = $("#chartB").highcharts(
+            {
+              title: {
+                text: "Fold Change over Time",
+                x: -20, //center
+              },
+              subtitle: {
+                text: "",
+                x: -20,
+              },
+              xAxis: {
+                title: {
+                  text: "Days Post Infection",
+                },
+                categories: [
+                  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                ],
+              },
+              yAxis: {
+                title: {
+                  text: "log2FC",
+                },
+                plotLines: [
+                  {
+                    value: 0,
+                    width: 1,
+                    color: "#808080",
+                  },
+                ],
+              },
+
+              plotOptions: {
+                series: {
+                  connectNulls: true,
+                },
+              },
+
+              tooltip: {
+                valueSuffix: "",
+              },
+              legend: {
+                layout: "vertical",
+                align: "right",
+                verticalAlign: "middle",
+                //floating: true,
+                //y: 30,
+                borderWidth: 0,
+              },
+              chart: {},
+              series: FCData,
+            },
+            function (chartB) {
+              $("#toggle-legend-chartB").click(function () {
+                <!--chartB.legend.toggle();-->
+              });
+            }
+          );
+        });
+      }
+    </script>
+    <script type="text/javascript">
+      function parseFCGenePerStudy(counts, studies) {
+        //console.log(counts)
+        //console.log(studies)
+        var div_list;
+        var relevant_counts;
+        div_list = [
+          "chartFPS1",
+          "chartFPS2",
+          "chartFPS3",
+          "chartFPS4",
+          "chartFPS5",
+        ];
+        for (var i = 0; i < studies.length; i++) {
+          relevant_counts = [];
+          for (var j = 0; j < counts.length; j++) {
+            //console.log(counts[j]);
+            var jsonobject = JSON.stringify(counts[j]);
+            var result = jsonobject.indexOf(studies[i]) > -1;
+            var res2 = relevant_counts.indexOf(counts[j]) > -1;
+            if (result == true) {
+              if (res2 == false) {
+                relevant_counts.push(counts[j]);
+              }
+            }
+          }
+
+          //console.log(relevant_counts);
+          div = "chartFPS" + i;
+
+          $(".FPS").append("<div id = '" + div + "'></div>");
+          //console.log(div);
+          //console.log(studies[i]);
+          //draw counts here wen relevant_counts is done being made
+          drawFCGenePerStudy(relevant_counts, div);
+        }
+      }
+      function drawFCGenePerStudy(countData, div) {
+        //console.log(countData);
+        //console.log(div);
+        $(function () {
+          $("#" + div).highcharts({
+            title: {
+              text: "Fold Change Over Time",
+              x: -20, //center
+            },
+            subtitle: {
+              text: "",
+              x: -20,
+            },
+            xAxis: {
+              title: {
+                text: "Days Post Infection",
+              },
+              categories: [
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+              ],
+            },
+            yAxis: {
+              title: {
+                text: "Counts",
+              },
+              plotLines: [
+                {
+                  value: 0,
+                  width: 1,
+                  color: "#808080",
+                },
+              ],
+            },
+
+            plotOptions: {
+              series: {
+                connectNulls: true,
+              },
+            },
+
+            tooltip: {
+              valueSuffix: "",
+            },
+            legend: {
+              layout: "vertical",
+              align: "right",
+              verticalAlign: "middle",
+              //floating: true,
+              //y: 30,
+              borderWidth: 0,
+            },
+            chart: {},
+            series: countData,
+          });
+        });
+      }
+    </script>
+    <script type="text/javascript">
+      function parseFCStudyPerGene(counts, genes) {
+        //console.log(counts)
+        //console.log(studies)
+        var div_list;
+        var relevant_counts;
+
+        //outside incrementer
+        var x = 0;
+
+        div_list = [
+          "chartFSPG1",
+          "chartFSPG2",
+          "chartFSPG3",
+          "chartFSPG4",
+          "chartFSPG5",
+        ];
+        for (var i = 0; i < genes.length; i++) {
+          relevant_counts = [];
+          for (var j = 0; j < counts.length; j++) {
+            //console.log(counts[j]);
+
+            //stringify results and store into variable
+            var jsonobject = JSON.stringify(counts[j]);
+
+            //check if the name of the gene is in the jsonobject
+            var result = jsonobject.indexOf(genes[i]) > -1;
+
+            //check if the data isn't already in relevant counts
+            var res2 = relevant_counts.indexOf(counts[j]) > -1;
+            if (result == true) {
+              if (res2 == false) {
+                relevant_counts.push(counts[j]);
+              }
+            }
+          }
+
+          //console.log(relevant_counts)
+          if (relevant_counts.length > 0) {
+            //console.log(relevant_counts);
+            div = "chartFSPG" + i;
+
+            $(".FSPG").append("<div id = '" + div + "'></div>");
+            //console.log(div);
+            //console.log(studies[i]);
+            //draw counts here wen relevant_counts is done being made
+            drawFCStudyPerGene(relevant_counts, div);
+
+            //increment x
+            x++;
+          }
+        }
+      }
+      function drawFCStudyPerGene(countData, div) {
+        //console.log(countData);
+        //console.log(div);
+        $(function () {
+          $("#" + div).highcharts({
+            title: {
+              text: "Fold Change Over Time",
+              x: -20, //center
+            },
+            subtitle: {
+              text: "",
+              x: -20,
+            },
+            xAxis: {
+              title: {
+                text: "Days Post Infection",
+              },
+              categories: [
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+              ],
+            },
+            yAxis: {
+              title: {
+                text: "log2FC",
+              },
+              plotLines: [
+                {
+                  value: 0,
+                  width: 1,
+                  color: "#808080",
+                },
+              ],
+            },
+
+            plotOptions: {
+              series: {
+                connectNulls: true,
+              },
+            },
+
+            tooltip: {
+              valueSuffix: "",
+            },
+            legend: {
+              layout: "vertical",
+              align: "right",
+              verticalAlign: "middle",
+              //floating: true,
+              //y: 30,
+              borderWidth: 0,
+            },
+            chart: {},
+            series: countData,
+          });
+        });
+      }
+    </script>
+    <!----FC Chart ends here---->
+    <!----Heat Maps start here---->
+    <!--Draw Heatmap functions-->
+    <script type="text/javascript">
+      //<!--$(document).ready(parse_heatmap()); //Debug function, draws heatmap on page reload to allow easy checking-->
+      //Loads Highchart when div is not hidden, fixes issue with disappearing highchart and improper resizing
+      function load_highchart() {
+        $("li")
+          .off("click")
+          .on("click", function (e) {
+            var Response0 = JSON.parse(sessionStorage.getItem("Response0"));
+            if ($(".tab2_button").is(":visible") && Response0) {
+              //<!--console.log($(e.target));-->
+
+              //Response_all and Countline_all contain all datatypes
+              var Response1 = JSON.parse(sessionStorage.getItem("CountLine"));
+              var Response1_all = JSON.parse(
+                sessionStorage.getItem("CountLine_all")
+              );
+              var Response7 = JSON.parse(sessionStorage.getItem("Response7"));
+              var Response8 = JSON.parse(sessionStorage.getItem("Response8"));
+              var Response23 = JSON.parse(sessionStorage.getItem("Response23"));
+              var Response24 = JSON.parse(sessionStorage.getItem("Response24"));
+              var FCLine = JSON.parse(sessionStorage.getItem("FCLine"));
+              //<!--console.log(FCLine);-->
+              //<!--console.log(Response7);-->
+              var Response14 = JSON.parse(sessionStorage.getItem("Response14"));
+              //<!--console.log(MicroCount);-->
+
+              // Heatmap Tab
+              if ($(e.target).text() == "Heat Maps") {
+                //<!--console.log($(".tab2_button.active:visible").text());-->
+                if (
+                  $(".tab2_button.active:visible").text() == "Dataset Heat Map"
+                ) {
+                  parse_heatmap("DS");
+                }
+                if ($(".tab2_button.active:visible").text() == "DPI Heat Map") {
+                  parse_heatmap("DPI");
+                }
+              }
+              if ($(e.target).text() == "Dataset Heat Map") {
+                parse_heatmap("DS");
+              }
+              if ($(e.target).text() == "DPI Heat Map") {
+                parse_heatmap("DPI");
+              }
+
+              // Counts Graphs Tab
+              if ($(e.target).text() == "Counts Graphs") {
+                if (
+                  $(".tab2_button.active:visible").text() ==
+                  "Expression Pattern Over Time"
+                ) {
+                  drawCountLine(Response1);
+                  if (Response14) {
+                    $("#micro_chartA").show();
+                    draw_micro_count_line(Response14);
+                  }
+                }
+                if (
+                  $(".tab2_button.active:visible").text() == "Genes Per Study"
+                ) {
+                  parseCountsGenePerStudy(Response1_all, Response7);
+                }
+                if (
+                  $(".tab2_button.active:visible").text() ==
+                  "Study Results Per Gene"
+                ) {
+                  parseCountsStudyPerGene(Response1_all, Response8);
+                }
+              }
+              if (
+                $(e.target).attr("href") == "#sub_tab1" &&
+                $(e.target).text() == "Expression Pattern Over Time"
+              ) {
+                drawCountLine(Response1);
+              }
+              if (
+                $(e.target).attr("href") == "#sub_tab2" &&
+                $(e.target).text() == "Genes Per Study"
+              ) {
+                parseCountsGenePerStudy(Response1_all, Response7);
+              }
+              if (
+                $(e.target).attr("href") == "#sub_tab3" &&
+                $(e.target).text() == "Study Results Per Gene"
+              ) {
+                parseCountsStudyPerGene(Response1_all, Response8);
+              }
+
+              //Fold Change Graphs Tab
+              if ($(e.target).text() == "Fold Change Graphs") {
+                if (
+                  $(".tab2_button.active:visible").text() ==
+                  "Fold Change Over Time"
+                ) {
+                  drawFCLine(FCLine);
+                }
+                if (
+                  $(".tab2_button.active:visible").text() == "Genes Per Study"
+                ) {
+                  parseFCGenePerStudy(FCLine, Response7);
+                }
+                if (
+                  $(".tab2_button.active:visible").text() ==
+                  "Study Results Per Gene"
+                ) {
+                  parseFCStudyPerGene(FCLine, Response8);
+                }
+              }
+              if (
+                $(e.target).attr("href") == "#sub_tab1b" &&
+                $(e.target).text() == "Fold Change Over Time"
+              ) {
+                drawFCLine(FCLine);
+              }
+              if (
+                $(e.target).attr("href") == "#sub_tab2b" &&
+                $(e.target).text() == "Genes Per Study"
+              ) {
+                parseFCGenePerStudy(FCLine, Response7);
+              }
+              if (
+                $(e.target).attr("href") == "#sub_tab3b" &&
+                $(e.target).text() == "Study Results Per Gene"
+              ) {
+                parseFCStudyPerGene(FCLine, Response8);
+              }
+              // Box Plot Tab
+              if ($(e.target).text() == "Box Plot") {
+                var groupedByDPI = groupByArray(Response23, "DPI");
+                if (
+                  $(".tab2_button.active:visible").text() == "RNA Sequencing"
+                ) {
+                  for (var i = 1; i <= groupedByDPI.length; i++) {
+                    drawBoxPlot(groupedByDPI[i - 1].values, i);
+                  }
+                }
+                var groupedByDPI_mic = groupByArray(Response24, "DPI");
+                if ($(".tab2_button.active:visible").text() == "Microarray") {
+                  for (var i = 1; i <= groupedByDPI_mic.length; i++) {
+                    drawBoxPlot_microarray(groupedByDPI_mic[i - 1].values, i);
+                  }
+                }
+              }
+
+              if (
+                $(e.target).attr("href") == "#sub_tab1d" &&
+                $(e.target).text() == "RNA Sequencing"
+              ) {
+                var groupedByDPI = groupByArray(Response23, "DPI");
+                for (var i = 1; i <= groupedByDPI.length; i++) {
+                  drawBoxPlot(groupedByDPI[i - 1].values, i);
+                }
+              }
+              if (
+                $(e.target).attr("href") == "#sub_tab2d" &&
+                $(e.target).text() == "Microarray"
+              ) {
+                var groupedByDPI_mic = groupByArray(Response24, "DPI");
+                for (var i = 1; i <= groupedByDPI_mic.length; i++) {
+                  drawBoxPlot_microarray(groupedByDPI_mic[i - 1].values, i);
+                }
+              }
+            }
+          });
+      }
+      //Parses data to pass to heatmap function
+      function parse_heatmap(type) {
+        if ((type = "DPI")) {
+          var by_day = format_data("Response11");
+          console.log(by_day);
+          var heatmap_full_day = by_day[0];
+          //var studynames_by_day = by_day[1];
+          //var genes = by_day[2];
+          //var highest_val = by_day[3];
+          var genes = heatmap_full_day.map(function (row) {
+            return row[4];
+          });
+          var uniqueGenes = genes.filter(function (gene, index, self) {
+            return self.indexOf(gene) === index;
+          });
+          uniqueGenes.unshift("sample");
+          //var uniqueGenes = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+          var studynames_by_day = heatmap_full_day.map(function (row) {
+            return row[3];
+          });
+          var uniqueStudynames_by_day = studynames_by_day.filter(function (
+            study,
+            index,
+            self
+          ) {
+            return self.indexOf(study) === index;
+          });
+          // var highest_val = max  heatmap_full
+          //var heatmap_full = heatmap_full_day.map(function(row) { return row[2]; });
+          var heatmap_full = heatmap_full_day.map(function (row) {
+            return row.slice(0, 3);
+          });
+          //const newgenes = [...new Set(heatmap_full_day.map(row => row[4]))]; // get unique gene names
+          //const heatmap_2D = newgenes.map(gene => {
+          //        return heatmap_full_day.filter(row => row[4] === gene).map(row => row[2]);
+          //});
+          var highest_val = Math.max.apply(null, heatmap_full);
+          var title = "Fold Change per Day Post-Infection per Gene in Search";
+          var element = "#heatmap_DPI";
+          draw_Study_Heatmap(
+            uniqueGenes,
+            heatmap_full,
+            uniqueStudynames_by_day,
+            highest_val,
+            title,
+            element
+          );
+        }
+        if ((type = "DS")) {
+          var by_study = format_data("Response10");
+          console.log(by_study);
+          var heatmap_full_study = by_study[0];
+          console.log(heatmap_full_study);
+          var studynames_by_study = by_study[1];
+          console.log(studynames_by_study);
+          var genes = by_study[2];
+          console.log(genes);
+          var highest_val = by_study[3];
+          console.log(highest_val);
+          var title = "Fold Change per Dataset per Gene in Search";
+          var element = "#heatmap_DS";
+          draw_Study_Heatmap(
+            uniqueGenes,
+            heatmap_full_study,
+            uniqueStudynames_by_day,
+            highest_val,
+            title,
+            element
+          );
+        }
+      }
+      function format_data(data) {
+        //Formats data received from python
+        //var DPI = localStorage.getItem("Response11"); // Debug data
+        var DPI = sessionStorage.getItem(data);
+        DPI = JSON.parse(DPI);
+        var heatmap = DPI[0];
+        var studynames = DPI[1];
+        var genes = DPI[2];
+        var highest_val = DPI[3];
+        return [heatmap, studynames, genes, highest_val];
+      }
+    </script>
+    <script type="text/javascript">
+      //$(document).ready(function() { //run when the whole page is loaded-->
+      //<!--var DPI = localStorage.getItem("Response11");-->
+      //<!--var data = DPI[4];-->
+      //<!--window.inchlib = new InCHlib({ //instantiate InCHlib-->
+      //<!--target: "inchlib", //ID of a target HTML element-->
+      //<!--metadata: true, //turn on the metadata-->
+      //<!--column_metadata: true, //turn on the column metadata-->
+      //<!--max_height: 1200, //set maximum height of visualization in pixels-->
+      //<!--width: 1000, //set width of visualization in pixels-->
+      //<!--heatmap_colors: "Greens", //set color scale for clustered data-->
+      //<!--metadata_colors: "Reds", //set color scale for metadata-->
+      //<!--});-->
+      //<!--inchlib.read_data(data); //read input json file-->
+      //<!--inchlib.draw(); //draw cluster heatmap-->
+      //<!--});-->
+    </script>
+    <!-----MicroarrayCountLine----->
+    <script type="text/javascript">
+      function draw_micro_count_line(countData) {
+        $(function () {
+          $("#micro_chartA").highcharts({
+            title: {
+              text: "Expression Pattern Over Time",
+              x: -20, //center
+            },
+            subtitle: {
+              text: "",
+              x: -20,
+            },
+            xAxis: {
+              title: {
+                text: "Days Post Infection",
+              },
+              categories: [0, 1, 2, 3, 4, 5, 6],
+            },
+            yAxis: {
+              title: {
+                text: "Normalized flouresence intensity",
+              },
+              plotLines: [
+                {
+                  value: 0,
+                  width: 1,
+                  color: "#808080",
+                },
+              ],
+            },
+
+            plotOptions: {
+              series: {
+                connectNulls: true,
+              },
+            },
+
+            tooltip: {
+              valueSuffix: "",
+            },
+            legend: {
+              layout: "vertical",
+              align: "right",
+              verticalAlign: "middle",
+              //floating: true,
+              //y: 30,
+              borderWidth: 0,
+              <!--width: 10-->
+            },
+            chart: {
+              //height:null,
+              //width:null
+            },
+            series: countData,
+          });
+        });
+      }
+    </script>
+
+    <!-----NanostringCountLine----->
+    <script type="text/javascript">
+      function draw_nano_count_line(countData) {
+        $(function () {
+          $("#nano_chartA").highcharts({
+            title: {
+              text: "Expression Pattern Over Time",
+              x: -20, //center
+            },
+            subtitle: {
+              text: "",
+              x: -20,
+            },
+            xAxis: {
+              title: {
+                text: "Days Post Infection",
+              },
+              categories: [0, 1, 2, 3, 4, 5, 6],
+            },
+            yAxis: {
+              title: {
+                text: "Normalized counts",
+              },
+              plotLines: [
+                {
+                  value: 0,
+                  width: 1,
+                  color: "#808080",
+                },
+              ],
+            },
+
+            plotOptions: {
+              series: {
+                connectNulls: true,
+              },
+            },
+
+            tooltip: {
+              valueSuffix: "",
+            },
+            legend: {
+              layout: "vertical",
+              align: "right",
+              verticalAlign: "middle",
+              //floating: true,
+              //y: 30,
+              borderWidth: 0,
+              <!--width: 10-->
+            },
+            chart: {
+              //height:null,
+              //width:null
+            },
+            series: countData,
+          });
+        });
+      }
+    </script>
+    </div>
+    </div>
+    <!--<div id="inchlib"></div>-->
+  </body>
+</html>

@@ -1,0 +1,338 @@
+<html>
+	<title>Top Hits</title>
+    <head>
+	<!--Load css sheets-->
+	<!--<link rel="stylesheet" type="text/css" href = "VHFstyle.css">-->
+	<link rel="stylesheet" type="text/css" href = "css/VHFquerystyle.css">
+	
+	
+	<!---JQuery---->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<!--Load jquery ui api-->
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+	<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+	
+	<!----Load HighCharts---->
+		<script src="https://code.highcharts.com/highcharts.js"></script>
+		<script src="https://code.highcharts.com/highcharts-more.js"></script>
+		<script src="https://code.highcharts.com/modules/data.js"></script>
+		<script src="https://code.highcharts.com/modules/heatmap.js"></script>
+		<script src="https://code.highcharts.com/modules/exporting.js"></script>
+		 
+		
+	<!-- Google Analytics --->
+	<script type = "text/javascript">
+		//Javascript to check if current server is development and assign google ID based on server type
+		var ID = "";
+		if(window.location.href.indexOf("development") > -1) {
+			ID = "UA-80347666-1";
+		}
+		else{
+			ID = "UA-80347666-2";
+		}
+		
+		window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+		ga('create', ID, 'auto');
+		console.log(ID);
+		ga('send', 'pageview');
+		</script>
+	<!--- End Google Analytics -->
+
+	<script src="/js/hotresdb.js">	</script>
+	<script type = "text/javascript"> 
+	//get top searches from database
+	$(document).ready(function(){
+		
+	});
+	
+	function make_graphs(){
+		$.ajax(
+				{
+					url: "/cgi-bin/get_top_hits.py",
+					type: "post",
+					data: ["object"],
+					dataType: "json",
+					success: function(response) {
+						//get back table of top 10 hits in descending order
+						drawGeneSummTable_allresults(response[3]);
+						draw_Hits_Bar_allresults(response[4], response[5]);
+						drawGeneSummTable(response[0]);
+						draw_Hits_Bar(response[1], response[2]);
+						//console.log(response);
+					},
+					error: function(response){
+						console.log("Something went wrong with retrieving data.");
+						alert("Something went wrong with retrieving data...");
+					}
+				});
+	}
+	//Tabs function
+	$(function() {
+		$( "#tabs" ).tabs({
+			activate: function(event, ui) {
+				if (ui.newPanel.selector == "#tabs-2") {
+					draw_Hits_Bar_allresults(response[4], response[5]);
+				}
+			}
+		});
+	});
+	//Check Admin status
+	function admincheck(data){
+		//jquery to make ajax request to server
+		var request = $.ajax(
+		{
+			type: "POST",
+			url: "/cgi-bin/adminstatus.py",
+			data: data,
+			dataType: "json",
+			success: function(response) //run function once we get response
+			{
+				console.log(response[0][0]);
+				bool = response[0][0];
+				adminstate(bool); //Highly unneccessary function, but I can't figure out how to access json object data
+			},					  //Outside the ajax function
+			error: function(response,data, status){
+				console.log(response);
+				console.log(status);
+				console.log(data);
+				$("#error").html(response['responseText']);
+				console.log("Something went wrong");
+			},
+		});
+		console.log(request);
+		console.log(request['responseText']);
+		return request; //Once the data gets to this point it goes weird and request[0][0] for example, doesn't work
+	}
+	//On page load, check if user is admin.
+    function logincheck(){
+    var username = getCookie("username");
+    console.log(username);
+    if (username !=""){
+			data = "&username="+encodeURIComponent(username);
+			admin = admincheck(data);
+		}
+    else{
+			window.alert("Administrator Access Only");
+		}
+	console.log(admin);
+	}
+
+	//Fix this figure out how to extract data from json object
+	function adminstate(bool){
+		if (bool == "Yes"){
+				make_graphs();
+			}
+		else{
+				window.alert("Administrator Access Only");
+			}
+		}
+	//draw top 20 results table and chart
+	function drawGeneSummTable(array) {
+		var tr;
+		for (var i = 0; i < array.length; i++) {
+		tr = $('<tr/>');
+		var num = i + 1; 
+		tr.append("<td class = 'appended'>" + num + "</td>");
+		tr.append("<td class = 'appended'>" + array[i][0] + "</td>");
+		tr.append("<td class = 'appended'>" + array[i][1] + "</td>");
+		$('#top_hits_tab').append(tr);
+		}
+	}
+	function draw_Hits_Bar (data, cats){
+		$(function () {
+			$('#Hits_Bar').highcharts({
+				chart: {
+					type: 'bar'
+				},
+				title: {
+					text: 'Search counts: Top 20'
+				},
+				xAxis: {
+					categories: cats,
+					title: {
+						text: "Genes"
+					}
+				},
+				yAxis: {
+					min: 0,
+					title: {
+						text: 'Number of searches',
+						align: 'high'
+					},
+					labels: {
+						overflow: 'justify'
+					}
+				},
+				plotOptions: {
+					bar: {
+						dataLabels: {
+							enabled: true
+						}
+					}
+				},
+				//legend: {
+				//	layout: 'vertical',
+				//	align: 'right',
+				//	verticalAlign: 'top',
+				//	x: -40,
+				//	y: 80,
+				//	floating: true,
+				//	borderWidth: 1,
+				//	backgroundColor: ((Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'),
+				//	shadow: true
+				//},
+				credits: {
+					enabled: false
+				},
+				series: data,
+			});
+		});
+	}
+	
+	//draw all results bar chart
+	function drawGeneSummTable_allresults(array2) {
+		var tr2;
+		for (var i2 = 0; i2 < array2.length; i2++) {
+		tr2 = $('<tr/>');
+		var num2 = i2 + 1; 
+		tr2.append("<td>" + num2 + "</td>");
+		tr2.append("<td>" + array2[i2][0] + "</td>");
+		tr2.append("<td>" + array2[i2][1] + "</td>");
+		$('#all_top_hits_tab').append(tr2);
+		}
+	}
+	function draw_Hits_Bar_allresults (data2, cats2){
+		console.log(data2);
+		console.log(cats2);
+		$(function () {
+			$('#All_Hits_Bar').highcharts({
+				chart: {
+					type: 'bar'
+				},
+				title: {
+					text: 'Search counts: All'
+				},
+				xAxis: {
+					categories: cats2,
+					title: {
+						text: "Genes"
+					}
+				},
+				yAxis: {
+					min: 0,
+					title: {
+						text: 'Number of searches',
+						align: 'high'
+					},
+					labels: {
+						overflow: 'justify'
+					}
+				},
+				plotOptions: {
+					bar: {
+						dataLabels: {
+							enabled: true
+						}
+					}
+				},
+				//legend: {
+				//	layout: 'vertical',
+				//	align: 'right',
+				//	verticalAlign: 'top',
+				//	x: -40,
+				//	y: 80,
+				//	floating: true,
+				//	borderWidth: 1,
+				//	backgroundColor: ((Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'),
+				//	shadow: true
+				//},
+				credits: {
+					enabled: false
+				},
+				series: data2,
+			});
+		});
+	}
+	</script>
+	</head>
+	<body onload="logincheck(), CheckUser()">
+		<div id="top_grad"></div>
+		<!-- Start container here NEEDS TO BE DONE -->
+		<div class="put_maincontainerhere">
+		<div class="put_innercontainerhere ">
+			<div id = "pageHeader">
+				<!-- Website header-->
+				<!---h1>HoTRes<a style="color:#3333ff;">DB</a></h1--->
+				<img id = "logo" src="./img/HoTResDB_Logo_resize.PNG"/>
+			</div>
+		<div id ="navcontainer">
+		<!-- Navigation bar -->
+		<ul>
+			<li>
+				<a href="index.html">Home</a>
+			</li>
+			<li>
+				<a href="VHFQueries.html">Search</a>
+			</li>
+			<li>
+				<a href="VHFDataStats.html">Data Statistics</a>
+			</li>
+			<li>
+				<a href="VHFHelp.html">Help</a>
+			</li>
+			<li>
+				<a href="VHFContact.html">Contact Us</a>
+			</li>
+			<li>
+
+                                <a href="VHFContributor.html">Contributors</a>
+
+                        </li>
+			<div class="topcorner"></div>
+		</ul>
+		</div> <!---END Navigation bar---> 
+		<div id="tabs" style="width:100%">
+			<ul>
+				<li><a href="#tabs-1" class = "expand_collapse">Top 20</a></li>
+				<li><a href="#tabs-2" class = "expand_collapse">All Results</a></li>
+			</ul>
+			<div id="tabs-1">
+				<div id="Hits_Bar" style="text-align: center;"></div>
+				<br><hr><br>
+				<div id = "tophits_table_div">
+					<table id = "top_hits_tab" cellpadding="10">
+						<thead>
+							<tr id = "top_hits_header">
+								<td> Rank </td>
+								<td> Gene Symbol </td>
+								<td> Number of Searches </td>
+							</tr>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div id="tabs-2">
+				<div id="All_Hits_Bar" style="align = 'center';"></div>
+				<br><hr><br>
+				<div id = "tophits_table_div2">
+					<table id = "all_top_hits_tab" cellpadding="10">
+						<thead>
+							<tr id = "top_hits_header">
+								<td> Rank </td>
+								<td> Gene Symbol </td>
+								<td> Number of Searches </td>
+							</tr>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+	</div>
+	</body>
+</html>

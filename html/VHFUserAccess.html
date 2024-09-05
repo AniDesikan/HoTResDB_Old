@@ -1,0 +1,273 @@
+<html>
+	<head>
+    <title>User Access</title>
+	<!--Load css sheets-->
+	<!--<link rel="stylesheet" type="text/css" href = "VHFstyle.css">-->
+	<link rel="stylesheet" type="text/css" href = "css/VHFquerystyle.css">
+
+	    <!--Load jquery api-->
+	<script type="text/javascript" src="/jquery-1.11.0.js" ></script>
+	<script type="text/javascript" 	src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+
+    <!--Load jquery ui api-->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+	<!--Load hotresdb Js-->
+	<script type="text/javascript" src="js/hotresdb.js"></script>
+
+    <script type="text/javascript">
+    //Overwrite Approval
+	function changeapproval(data) {
+		//jquery to make ajax request to server
+		var request = $.ajax(
+		{
+			type: "POST",
+			// CHANGE ON MOVE TO MASTER
+			url: "/cgi-bin/change_approval.py", //CGI script for changing approval
+			data: data,
+			<!--dataType: "json",-->
+			success: function(response) //run function once we get response
+			{
+				console.log(response);
+				<!--console.log(status);-->
+				<!--console.log(data);-->
+				location.reload();
+			},
+			error: function(data, status){
+			console.log(status);
+			console.log(data);
+			$("#error").html(data['responseText']);
+			<!--response(data);-->
+			console.log("Something went wrong");
+		},
+		});
+		}
+
+	//Check Admin status
+	function admincheck(data){
+		//jquery to make ajax request to server
+		var request = $.ajax(
+		{
+			type: "POST",
+			url: "/cgi-bin/adminstatus.py",
+			data: data,
+			dataType: "json",
+			success: function(response) //run function once we get response
+			{
+				<!--console.log(response[0][0]);-->
+				bool = response[0][0];
+				adminstate(bool); //Highly unneccessary function, but I can't figure out how to access json object data
+			},					  //Outside the ajax function
+			error: function(response,data, status){
+				console.log(response);
+				console.log(status);
+				console.log(data);
+				$("#error").html(response['responseText']);
+				<!--console.log("Something went wrong");-->
+			},
+		});
+		<!--console.log(request);-->
+		<!--console.log(request['responseText']);-->
+		return request; //Once the data gets to this point it goes weird and request[0][0] for example, doesn't work
+	}
+
+    //On page load, check if user is admin.
+    function logincheck(){
+    var username = getCookie("username");
+    console.log(username);
+    if (username !=""){
+        data = "&username="+encodeURIComponent(username);
+        admin = admincheck(data);
+		document.getElementById("register_button").style.display = "none";
+        document.getElementById("user-access-link").style.display = "block";
+		document.getElementById("enter-data").style.display = "block";
+    }
+    else{
+        window.alert("Administrator Access Only");
+        window.location.href = "VHFLogin.html";
+        return; // Add this return statement
+    }
+}
+
+	//Fix this figure out how to extract data from json object
+	function adminstate(bool){
+		if (bool == "Yes"){
+			Tables();
+			}
+		else{
+			window.alert("Administrator Access Only");
+			window.location.href = "VHFLogin.html";
+			}
+		}
+
+    //Loads SQL user table
+    function Tables(data){
+        var request = $.ajax({
+		type: "POST",
+		// CHANGE IN MOVE TO MASTER
+		url: "/cgi-bin/tables.py", //CGI script where the response to our request comes from
+		data: data, //Hands off the contents of the form
+		dataType: "json", //expect JSON data to be returned
+		success: function(response){ //Function to run once we get our response
+		 //console.log data for debugging
+		 	<!--console.log(response);-->
+			var arr = response;
+			var tab, tr, td, tn, row, col;
+			<!--tab = document.createElement('table');-->
+			tab = document.getElementById("results");
+			for (row=0; row < arr.length; row++){
+				tr = document.createElement('tr');
+				for (col=0; col < arr[row].length; col++){
+					td = document.createElement('td');
+					tn = document.createTextNode(arr[row][col]);
+					td.appendChild(tn);
+					tr.appendChild(td);
+				}
+				td = document.createElement('td');
+				tn = document.createTextNode('Submit');
+				add = document.createElement('button');
+				sel = document.createElement('select'); // Create dropdown menu
+					var yes =  new Option("Yes","Yes");
+					var no =  new Option("No","No");
+					var pending =  new Option("Pending","Pending");
+					sel.add(yes);
+					sel.add(no);
+					sel.add(pending);
+				add.onclick = function(){
+					<!--var approval = $(this).closest('tr').find('select').val();-->
+					<!--var username = $(this).closest('tr').children('td:eq(1)').text();-->
+					var id = $(this).closest('tr').children('td:eq(0)').text();
+					var new_approval = $(this).closest('tr').find('select').val();
+					var expir = $(this).closest('tr').find('.datepicker').val();
+					if (expir == ""){
+						expir = $(this).closest('tr').children('td:eq(6)').text();
+					}
+					console.log(expir);
+					data = "&approval=" +encodeURIComponent(new_approval)+"&id="+encodeURIComponent(id)+"&expir="+encodeURIComponent(expir);
+					var user = checkCookie();
+					if (user){
+						changeapproval(data);
+					}
+					else{
+						location.reload();
+					}
+				};
+				var date = document.createElement('input');
+				var td1 = document.createElement('td');
+				var td2 = document.createElement('td');
+				date.setAttribute("type","text");
+				date.setAttribute("class","datepicker");
+				<!--date.setAttribute("function","$(this).datepicker()");-->
+				add.appendChild(tn);
+				td.appendChild(sel);
+				td1.appendChild(date);
+				td2.appendChild(add);
+				<!--td.appendChild(add);-->
+				tr.appendChild(td);
+				tr.appendChild(td1);
+				tr.appendChild(td2);
+				tab.appendChild(tr);
+			}
+			datepicker();
+			<!--$("#results").html(tab);-->
+			<!--console.log(response);-->
+			<!--console.log("success");-->
+		},
+		error: function(data, status){
+			console.log(status);
+			console.log(data);
+			$("#error").html(data['responseText']);
+			<!--response(data);-->
+			console.log("Something went wrong");
+		},
+	});
+	//In case of failure
+	request.fail(function(jqHXR, textStatus) {
+		// Prints python error in div
+		$("#error").html(jqHXR.responseText);
+		});
+        };
+
+	<!--console.log("Test");-->
+	</script>
+	<script>
+	function datepicker(){
+		$( "#datepicker, .datepicker" ).datepicker();
+	};
+	</script>
+	<script src="js/hotresdb.js"></script>
+
+
+	</head>
+	<!--<p>Date: <input type="text" id="datepicker"></p>-->
+	<div id="error"></div>
+	<body onload="logincheck(), CheckUser()">
+		<div id="top_grad"></div>
+		<!-- Start container here NEEDS TO BE DONE -->
+		<div class="put_maincontainerhere">
+		<div class="put_innercontainerhere ">
+			<div id = "pageHeader">
+				<!-- Website header-->
+				<!---h1>HoTRes<a style="color:#3333ff;">DB</a></h1--->
+				<img id = "logo" src="./img/HoTResDB_Logo_resize.PNG"/>
+				<div class ="landinglogin">
+					<form>
+						<button id = "login_button" formaction="VHFLogin.html">Login</button>
+						<!----Take user to cgi page to register,---->
+						<!----so password can be hashed right away---->
+						<button id="register_button" formaction="VHFRegister.html">Register</button>
+					</form>
+				</div>
+			</div>
+		<div id ="navcontainer">
+		<!-- Navigation bar -->
+		<ul>
+			<li>
+				<a href="index.html">Home</a>
+			</li>
+			<li>
+				<a href="VHFQueries.html">Search</a>
+			</li>
+			<li>
+				<a href="VHFDataStats.html">Data Statistics</a>
+			</li>
+			<li>
+				<a href="VHFHelp.html">Help</a>
+			</li>
+			<li>
+				<a href="VHFContact.html">Contact Us</a>
+			</li>
+			<li>
+				<a href="VHFContributor.html">Contributors</a>
+			</li>
+			<li id="user-access-link" style="display: none;">
+				<a href="VHFUserAccess.html">User Access</a>
+			</li>
+			<li id="enter-data" style="display: none;">
+				<a href="VHFEnterDataForm.html">Enter Data</a>
+			</li>
+			<div class="topcorner"></div>
+		</ul>
+		</div> <!---END Navigation bar--->
+	</body>
+	    <table class = "search_result_tab" >
+		<thead id="results">
+			<tr class = "search_result_header">
+				<td> Id </td>
+				<td> Username</td>
+				<td> Hashed Password</td>
+				<td> First Name</td>
+				<td> Last Name</td>
+				<td> Email</td>
+				<td> Access Expiration</td>
+				<td> Approval</td>
+				<td> Change Approval</td>
+				<td> Change Access Expiration</td>
+				<td> Submit</td>
+			</tr>
+		</thead>
+		</table>
+
+</html>

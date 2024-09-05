@@ -1,0 +1,351 @@
+<html>
+	<title>Database Statistics</title>
+	<head>
+		<!--<link rel="stylesheet" type="text/css" href = "VHFstyle.css">-->
+		<link rel="stylesheet" type="text/css" href = "css/VHFquerystyle.css">
+
+    <!--Load ajax api-->
+	<!--<script type="text/javascript" src="/jquery-1.11.0.js" ></script>-->
+	<script type="text/javascript" 	src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+
+	<!--Load jquery ui api-->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.11.0.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+	<!--Load ajax api for highcharts-->
+	<script src="https://code.highcharts.com/highcharts.js"></script>
+	<script src="https://code.highcharts.com/modules/exporting.js"></script>
+	<!-- Google Analytics --->
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-80347666-1', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+	<!--- End Google Analytics -->
+	<script>
+	//Swap Description
+	$(document).ready(function(){
+		$(".description").click(function(){
+			$(".content-one").toggle();
+		});
+		$("swap").on("click", function() {
+			var el=$("swap");
+			var x = document.getElementsByTagName("swap")[0].textContent;
+			if (x == "Click to Hide Description"){
+			el.text("Click to Show Description");
+			}
+			else{
+			el.text("Click to Hide Description");
+			}
+		});
+		<!--console.log(document.cookie);-->
+	});
+	</script>
+
+	<script type = "text/javascript">
+	// Check user name and show unpublished data if logged in
+	$(document).ready(function(){
+		var username = checkCookie();
+		if (username){
+			$(".unpublished").show();
+		}
+	});
+
+	</script>
+
+	<script src="js/hotresdb.js"></script>
+	<script type="text/javascript">
+		// Function to get cookie by name
+		function getCookie(name) {
+			let matches = document.cookie.match(new RegExp(
+				"(?:^|; )" + name.replace(/([.$?*|{}()[]\\\/+^])/g, '\\$1') + "=([^;]*)"
+			));
+			return matches ? decodeURIComponent(matches[1]) : undefined;
+		}
+	
+		// Check if user is admin
+		function admincheck(data) {
+			var request = $.ajax({
+				type: "POST",
+				url: "/cgi-bin/adminstatus.py",
+				data: data,
+				dataType: "json",
+				success: function(response) {
+					let bool = response[0][0];
+					adminstate(bool);
+				},
+				error: function(response, data, status) {
+					console.log(response);
+					console.log(status);
+					console.log(data);
+					$("#error").html(response['responseText']);
+				},
+			});
+			return request;
+		}
+	
+		// On page load, check if user is admin
+		function logincheck() {
+    var username = getCookie("username");
+    console.log(username);
+    if (username != "") {
+        var data = "&username=" + encodeURIComponent(username);
+        admincheck(data);
+        // Hide register button
+        document.getElementById("register_button").style.display = "none";
+    } else {
+        // Show register button
+        document.getElementById("register_button").style.display = "block";
+        document.getElementById("user-access-link").style.display = "none";
+		document.getElementById("enter-data").style.display = "none";
+    }
+}
+	
+		// Update the UI based on admin status
+		function adminstate(bool) {
+			if (bool == "Yes") {
+				document.getElementById("user-access-link").style.display = "block";
+				document.getElementById("enter-data").style.display = "block";
+			} else {
+				document.getElementById("user-access-link").style.display = "none";
+			}
+		}
+		// Ensure logincheck is called on page load
+		$(document).ready(function() {
+		logincheck();
+		showSlides(slideIndex);
+	});
+</script>
+	</head>
+	<body onload="CheckUser()">
+		<div id="top_grad"></div>
+		<!-- Start container here NEEDS TO BE DONE -->
+		<div class="put_maincontainerhere"></div>
+		<div class="put_innercontainerhere "> </div>
+			<div id = "pageHeader">
+				<!-- Website header-->
+				<!---h1>HoTRes<a style="color:#3333ff;">DB</a></h1--->
+				<img id = "logo" src="./img/HoTResDB_Logo_resize.PNG"/>
+				<div class ="landinglogin">
+					<form>
+						<button id = "login_button" formaction="VHFLogin.html">Login</button>
+						<!----Take user to cgi page to register,---->
+						<!----so password can be hashed right away---->
+						<button id="register_button" formaction="VHFRegister.html">Register</button>
+					</form>
+				</div>
+			</div>
+		<div id ="navcontainer">
+		<!-- Navigation bar -->
+		<ul>
+			<li>
+				<a href="index.html">Home</a>
+			</li>
+			<li>
+				<a href="VHFQueries.html">Search</a>
+			</li>
+			<li>
+				<a href="VHFDataStats.html">Data Statistics</a>
+			</li>
+			<li>
+				<a href="VHFHelp.html">Help</a>
+			</li>
+			<li>
+				<a href="VHFContact.html">Contact Us</a>
+			</li>
+			<li>
+				<a href="VHFContributor.html">Contributors</a>
+			</li>
+			<li id="user-access-link" style="display: none;">
+				<a href="VHFUserAccess.html">User Access</a>
+			</li>
+			<li id="enter-data" style="display: none;">
+				<a href="VHFEnterDataForm.html">Enter Data</a>
+			</li>
+			<div class="topcorner"></div>
+		</ul>
+		</div> <!---END Navigation bar--->
+
+	<div class = "search_data_outer_div" style="width:90%">
+	<table>
+		<thead>
+			<tr>
+				<th> Dataset </th>
+                <th> Virus </th>
+				<th> Publication</th>
+				<th> GEO or Bioproject Number</th>
+				<th> Sequencing Type</th>
+				<th> Lab</th>
+				<th class="description" style = "cursor:pointer;"><swap data="Click to Hide Description">Click to Show Description </swap></th>
+				<!--<th class ="advanced" style ="cursor:pointer;">Click to Show Advanced Information</th>-->
+				<th>PFU</th>
+				<th>Route of Infection</th>
+			</tr>
+		</thead>
+		<tbody >
+			<tr>
+				<td> EBOV_IRF WB RNASeq </td>
+                <td> Ebola Makona </td>
+				<td> <a target="_blank" href="https://pubmed.ncbi.nlm.nih.gov/30476250/">Link</a></td>
+				<td> <a target="_blank" href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE115785">GSE115785</a></td>
+				<td> Single End 100bp Reads</td>
+				<td> Integrated Research Facilities (IRF) in Fredrick, MD</td>
+                <td><p class="content-one">This study examined Ebola Makona in an animal model. All the animals were given
+                        a classic lethal dose of the virus (1000 PFU via intramuscular injection).
+                        This study focused on answering the questions
+                        1) Do viral titers reach the same levels as with Kikwit and
+                        Mayinga strains of the virus and 2) Does the time to death
+                        for the Makona strain remain the same.
+                    </p>
+                </td>
+				<td><p class="content-two">1000</p></td>
+				<td><p class="content-two">Intramuscular Injection</p></td>
+			</tr>
+			<tr>
+				<td> EBOV PBMC aerosol RNASeq </td>
+                <td> Ebola Mayinga </td>
+				<td> <a target="_blank" href="http://www.ncbi.nlm.nih.gov/pubmed/23262834">Link</a></td>
+				<td>  </td>
+				<td> Single End Reads</td>
+				<td> US Army Medical Research Institute of Infectious Diseases (USAMRIID)</td>
+                <td><p class="content-one"> Ebola is classified as a category A
+                    bioterrorist threat. The main method to weaponize a biological agent is through
+                    the development of aerosol dissemination methods for the agent.
+                    This study examined the infectivity of the Ebola virus
+                        when animals, rhesus macaques, were exposed via an aerosol route.
+                    </p>
+                </td>
+				<td><p class="content-two">1000</p></td>
+				<td><p class="content-two">Aerosol</p></td>
+			</tr>
+			<tr>
+				<td> EBOV PBMC Drug Microarray </td>
+                <td> Ebola Mayinga</td>
+				<td> <a target="_blank" href="http://www.ncbi.nlm.nih.gov/pubmed/21987740">Link</a></td>
+				<td> <a target="_blank" href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE24943">GSE24943</a></td>
+				<td> Microarray</td>
+				<td> US Army Medical Research Institute of Infectious Diseases (USAMRIID)</td>
+                <td><p class="content-one"> A pathology of Ebola is disseminated intravascular coagulation (DIC),
+                    a condition in which systemic deregulation of the coagulation system causes body-wide activation of
+                    clotting factors resulting in their depletion and eventual systemic hemorrhage. This study examined
+                    a possible treatment for DIC, the infusion of new clotting factors, in rhesus macaques infected with
+                    lethal doses of Ebola.
+                    </p>
+                </td>
+				<td><p class="content-two">1000</p></td>
+				<td><p class="content-two">Subcutaneous Injection</p></td>
+			</tr>
+			<tr>
+				<td> EBOV PBMC Vaccine RNASeq </td>
+                <td> Ebola Kitwit </td>
+				<td> <a target="_blank" href="http://www.ncbi.nlm.nih.gov/pubmed/25589554">Link</a></td>
+				<td> <a target="_blank" href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE64538">GSE64538</a></td>
+				<td> RNA Seq</td>
+				<td> Integrated Research Facilities (IRF) at Rocky Mountain Labs (RML)</td>
+                <td><p class="content-one">This study examined the efficiency of the VSV/EBOVgp vaccine currently in phase I
+                    clinical trials. Subjects were exposed to either Marburg vaccine VSV/MARVgp or Ebola vaccine VSV/EBOVgp prior to a lethal dose
+                    of Ebola. Those that received the Marburg vaccine had a 0% survival rate. Those that received the Ebola
+                    vaccine had a 100% survival rate. To date, this vaccine has been shown to be highly effective in animal
+                    models.
+                    </p>
+                </td>
+				<td><p class="content-two">1000</p></td>
+				<td><p class="content-two">Intramuscular Injection</p></td>
+			</tr>
+			<tr>
+				<td> EBOV WB Nanostring </td>
+                <td> Ebola </td>
+				<td> <a target="_blank" href="https://pubmed.ncbi.nlm.nih.gov/29116224/">Link</a></td>
+				<td> <a target="_blank" href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE99463">GSE99463</a></td>
+				<td> Nanostring</td>
+				<td> US Army Medical Research Institute of Infectious Diseases (USAMRIID)</td>
+                <td><p class="content-one">This study examined different muscosal routes of exposure and infection to Ebola.
+                    Previous studies have found that the least common exposure vector for Ebola is via needle. Therefore,
+                    this study tested how effective exposure via the mucosal membranes (eg: Eyes, nose, mouth) were at
+                    infecting subjects.
+                    </p>
+                </td>
+				<td><p class="content-two"></p></td>
+				<td><p class="content-two">Mucosal Membrane</p></td>
+			</tr>
+			<tr class = "unpublished">
+				<td> EBOV WB RNASeq </td>
+                <td> Ebola </td>
+				<td> <a target="_blank" href="https://pubmed.ncbi.nlm.nih.gov/29593102/">Link</a></td>
+				<td> <a target="_blank" href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103825">GSE103825</a></td>
+				<td> RNA Seq</td>
+				<td> US Army Medical Research Institute of Infectious Diseases (USAMRIID)</td>
+                <td><p class="content-one">This study pairs with the study above.
+                    </p>
+                </td>
+				<td><p class="content-two"></p></td>
+				<td><p class="content-two">Mucosal Membrane</p></td>
+			</tr>
+			<tr>
+				<td> LASV PBMC RNASeq</td>
+                <td> Lassa Josiah </td>
+				<td> <a target="_blank" href="http://www.ncbi.nlm.nih.gov/pubmed/25377889">Link</a></td>
+				<td><a target="_blank" href="http://www.ncbi.nlm.nih.gov/bioproject/14864">PRJNA14864</a></td>
+				<td> RNA Seq</td>
+				<td> US Army Medical Research Institute of Infectious Diseases (USAMRIID)</td>
+                <td><p class="content-one">A general classification of the Lassa virus in an animal model. Transcriptomes
+                    generated by this study were used to create a set of early unique classifiers to the Lassa Virus which
+                    were distinct from Ebola and Marburg viral infections.
+                    </p>
+                </td>
+				<td><p class="content-two">1000</p></td>
+				<td><p class="content-two">Aerosol</p></td>
+			</tr>
+			<tr>
+				<td> MARV PBMC RNASeq</td>
+                <td> Marburg Angola </td>
+				<td> <a target="_blank" href="http://www.ncbi.nlm.nih.gov/pubmed/25377889">Link</a></td>
+				<td><a target="_blank" href="http://www.ncbi.nlm.nih.gov/bioproject/15199">PRJNA15199</a></td>
+				<td> RNA Seq</td>
+				<td> US Army Medical Research Institute of Infectious Diseases (USAMRIID)</td>
+                <td><p class="content-one">A general classification of the Marburg virus in an animal model. Transcriptomes
+                    generated by this study were used to create a set of early unique classifiers to the Marburg Virus which
+                    were distinct from Ebola and Lassa viral infections.
+                    </p>
+                </td>
+				<td><p class="content-two">1000</p></td>
+				<td><p class="content-two">Aerosol</p></td>
+			</tr>
+			<tr class = "unpublished">
+				<td> BOMV PBMC RNASeq </td>
+                <td> BOMV </td>
+				<td> Currently Unpublished</td>
+				<td>  </td>
+				<td> RNA Seq</td>
+				<td> </td>
+                <td><p class="content-one">This study measures RNA expression data from several animal species by BOMV virus.
+                    </p>
+                </td>
+				<td><p class="content-two"></p></td>
+				<td><p class="content-two">IM</p></td>
+			</tr>
+			<tr class = "unpublished">
+				<td> TAFV PBMC RNASeq </td>
+                <td> TAFV </td>
+				<td> Currently Unpublished</td>
+				<td>  </td>
+				<td> RNA Seq</td>
+				<td> </td>
+                <td><p class="content-one">This study measures RNA expression data from several animal species by TAFV virus.
+				</p>
+                    </p>
+                </td>
+				<td><p class="content-two"></p></td>
+				<td><p class="content-two">IM</p></td>
+			</tr>
+		</tbody>
+    </table>
+    </div>
+	</body>
+</html>

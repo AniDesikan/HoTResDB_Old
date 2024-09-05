@@ -1,0 +1,213 @@
+<html>
+	<title>Contact Us</title>
+    <head>
+	<!--Load css sheets-->
+	<!--<link rel="stylesheet" type="text/css" href = "VHFstyle.css">-->
+	<link rel="stylesheet" type="text/css" href = "css/VHFquerystyle.css">
+
+    <!--Load jquery api-->
+	<script type="text/javascript" src="/jquery-1.11.0.js" ></script>
+	<script type="text/javascript" 	src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+
+	<!--Load jquery ui api-->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+	<!--Load ajax api for highcharts-->
+	<script src="https://code.highcharts.com/highcharts.js"></script>
+	<script src="https://code.highcharts.com/modules/exporting.js"></script>
+	<!-- Google Analytics --->
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-80347666-2', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+	<!----ReCAPTCHA---->
+	<script src='https://www.google.com/recaptcha/api.js'></script>
+	<!--- End Google Analytics -->
+    <script type="text/javascript">
+	
+    function checkvalue(field){
+            var fname=field[0].value;
+            var lname=field[1].value;
+            var email=field[2].value;
+            var comment=field[3].value;
+            console.log(field);
+            console.log(fname);
+            console.log(lname);
+            console.log(email);
+            console.log(comment);
+            if (fname == "" || lname == "" || email== "" || comment == ""){
+                window.alert("Please fill in all fields");
+                return false;
+            } else {
+                return true;
+            }
+		};
+	$("input[type=submit]").attr('disabled','disabled');
+	</script>
+
+	<script src="js/hotresdb.js"></script>
+	<script type="text/javascript">
+		// Function to get cookie by name
+		function getCookie(name) {
+			let matches = document.cookie.match(new RegExp(
+				"(?:^|; )" + name.replace(/([.$?*|{}()[]\\\/+^])/g, '\\$1') + "=([^;]*)"
+			));
+			return matches ? decodeURIComponent(matches[1]) : undefined;
+		}
+	
+		// Check if user is admin
+		function admincheck(data) {
+			var request = $.ajax({
+				type: "POST",
+				url: "/cgi-bin/adminstatus.py",
+				data: data,
+				dataType: "json",
+				success: function(response) {
+					let bool = response[0][0];
+					adminstate(bool);
+				},
+				error: function(response, data, status) {
+					console.log(response);
+					console.log(status);
+					console.log(data);
+					$("#error").html(response['responseText']);
+				},
+			});
+			return request;
+		}
+	
+		// On page load, check if user is admin
+		function logincheck() {
+    var username = getCookie("username");
+    console.log(username);
+    if (username != "") {
+        var data = "&username=" + encodeURIComponent(username);
+        admincheck(data);
+        // Hide register button
+        document.getElementById("register_button").style.display = "none";
+    } else {
+        // Show register button
+        document.getElementById("register_button").style.display = "block";
+        document.getElementById("user-access-link").style.display = "none";
+		document.getElementById("enter-data").style.display = "none";
+    }
+}
+	
+		// Update the UI based on admin status
+		function adminstate(bool) {
+			if (bool == "Yes") {
+				document.getElementById("user-access-link").style.display = "block";
+				document.getElementById("enter-data").style.display = "block";
+			} else {
+				document.getElementById("user-access-link").style.display = "none";
+			}
+		}
+		// Ensure logincheck is called on page load
+		$(document).ready(function() {
+		logincheck();
+		showSlides(slideIndex);
+	});
+</script>
+	</head>
+	<body onload="CheckUser()">
+		<div id="top_grad"></div>
+		<!-- Start container here NEEDS TO BE DONE -->
+		<div class="put_maincontainerhere">
+		<div class="put_innercontainerhere ">
+			<div id = "pageHeader">
+				<!-- Website header-->
+				<!---h1>HoTRes<a style="color:#3333ff;">DB</a></h1--->
+				<img id = "logo" src="./img/HoTResDB_Logo_resize.PNG"/>
+				<div class ="landinglogin">
+					<form>
+						<button type="button" id="login_button" onclick="location.href='VHFLogin.html';">Login</button>
+						<!-- Redirect to the login page when clicked -->
+						<button id="register_button" formaction="VHFRegister.html">Register</button>
+						<!-- Redirect to the register page when clicked -->
+					</form>
+					
+				</div>
+			</div>
+		<div id ="navcontainer">
+		<!-- Navigation bar -->
+		<ul>
+			<li>
+				<a href="index.html">Home</a>
+			</li>
+			<li>
+				<a href="VHFQueries.html">Search</a>
+			</li>
+			<li>
+				<a href="VHFDataStats.html">Data Statistics</a>
+			</li>
+			<li>
+				<a href="VHFHelp.html">Help</a>
+			</li>
+			<li>
+				<a href="VHFContact.html">Contact Us</a>
+			</li>
+			<li>
+				<a href="VHFContributor.html">Contributors</a>
+			</li>
+			<li id="user-access-link" style="display: none;">
+				<a href="VHFUserAccess.html">User Access</a>
+			</li>
+			<li id="enter-data" style="display: none;">
+				<a href="VHFEnterDataForm.html">Enter Data</a>
+			</li>
+			<div class="topcorner"></div>
+		</ul>
+		</div> <!---END Navigation bar--->
+<div class = "search_data_outer_div" id = "outer">
+     <div class="search_field_row">Please enter your questions or suggestions about the HotRes database in the text box below.</div>
+        <div class="search_field_box">
+            <form action="test.php" method="post" onsubmit="return checkvalue(this)">
+            <div>First Name: </div>
+                <div class="search" id ="fname"><input type="text" name="first_name"></div>
+            <div>Last Name: </div>
+                <div class="search" id ="lname"><input type="text" name="last_name"></div>
+            <div>E-mail:</div>
+                <div class="search" id="email"><input type="text" name="email" value=""></div>
+            <div>Comment:</div>
+                <div class="input_textarea" id="comment"><textarea cols="90" rows="15" name="message" value=" "></textarea></div>
+			<br>
+			<br>
+			<div class="g-recaptcha" data-sitekey="6Lc-4M8pAAAAALFIg7EkzNwZZ4tQiXMmzrk8O2zL"></div>
+			<br>
+            <div class = "center">
+                <div class = "search_field_title"><input id ="button" type = "submit" name="submit" value ="Send" /></div>
+                <div class = "search_field_title"><input type = "reset" value ="Reset"/></div>
+	        </div>
+			<div id="responseMessage"></div>
+			<script type="text/javascript">
+				$(document).ready(function() {
+					$('form').submit(function(e) {
+						e.preventDefault(); // Prevent the form from submitting traditionally
+						
+						var formData = $(this).serialize(); // Serialize form data
+						
+						$.ajax({
+						type: 'POST',
+						url: 'test.php',
+						data: formData,
+						success: function(response) {
+							$('#responseMessage').html(response); // Update responseMessage div with the response
+							$('form').find('input[type="text"], textarea').val(''); // Trigger the form reset
+						}
+						});
+					});
+					});
+			</script>									
+            </form>
+            <p id="error"></p>
+        </div>
+	</body>
+</html>

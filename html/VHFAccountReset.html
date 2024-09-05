@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>Forgot Password</title>
+	<!--Load css sheets-->
+	<!--<link rel="stylesheet" type="text/css" href = "VHFstyle.css">-->
+	<link rel="stylesheet" type="text/css" href = "css/VHFquerystyle.css">
+
+	<!--Load jquery api-->
+	<script type="text/javascript" src="/jquery-1.11.0.js" ></script>
+	<script type="text/javascript" 	src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+
+    <!--Load jquery ui api-->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+	<!-- Google Analytics --->
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	  ga('create', 'UA-80347666-1', 'auto');
+	  ga('send', 'pageview');
+
+	</script>
+
+	<!--- End Google Analytics -->
+	<!--User Password Reset Function-->
+    <script type="text/javascript">
+    $(document).ready(function() {
+        // Use the form submit button
+        <!--console.log($( "form.user_reset" ));-->
+        $( "form.user_reset" ).on( "submit", function( event ){
+            //Don't refresh page on submitting
+            event.preventDefault();
+            var terms = document.getElementsByTagName('input');
+            for (var i = 0; i < terms.length; i++) {
+					//check for special characters
+					if (terms.item(i).value.match(/[`~!#\$%\^&\*\;\(\)\=_+\\\[\]{\}\?,\\<\>]/)) {
+						alert('Cannot use special characters.');
+						return false;
+					}
+					//alert and exit function if empty
+					if (!terms.item(i).value || terms.item(i).value.match(/^\s*$/)) {
+						alert("Please fill in all fields");
+						return false;
+					}
+				}
+			data =$( this ).serialize();
+			pass_reset(data);
+        });
+    });
+
+	//checks User's email and resets password
+	function pass_reset(data) {
+	console.log(data);
+	var request = $.ajax({
+		type: "POST",
+		url: "/cgi-bin/password_reset.py", //CGI script where the response to our request comes from
+		data: data, //Hands off the contents of the form
+		dataType: "JSON", //expect JSON data to be returned
+		success: function(response){ //Function to run once we get our response
+		 //console.log data for debugging
+		 	console.log(response);
+			if (response == null ){
+				$("#response").html("Your username was not found");
+			}
+			else {
+				$("#response").html("Thank You. You should receive an email shortly (1~30 minutes)");
+			}
+
+		},
+		error: function(data, status){
+			console.log(status);
+			console.log(data);
+			$("#error").html(data['responseText']);
+			response(data);
+			console.log("Something went wrong");
+		},
+	});
+	//In case of failure
+	request.fail(function(jqHXR, textStatus) {
+		// Prints python error in div
+		$("#error").html(jqHXR.responseText);
+		});
+	};
+
+
+	</script>
+
+	<script src="js/hotresdb.js"></script>
+
+	</head>
+	<body>
+		<div id="top_grad"></div>
+		<!-- Start container here NEEDS TO BE DONE -->
+		<div class="put_maincontainerhere"></div>
+		<div class="put_innercontainerhere "></div>
+			<div id = "pageHeader">
+				<!-- Website header-->
+				<!---h1>HoTRes<a style="color:#3333ff;">DB</a></h1--->
+				<img id = "logo" src="./img/HoTResDB_Logo_resize.PNG"/>
+				<div class ="landinglogin">
+					<form>
+						<button id = "login_button" formaction="VHFLogin.html">Login</button>
+						<!----Take user to cgi page to register,---->
+						<!----so password can be hashed right away---->
+						<button formaction="VHFRegister.html">Register</button>
+					</form>
+				</div>
+			</div>
+		<div id ="navcontainer">
+		<!-- Navigation bar -->
+		<ul>
+			<li>
+				<a href="index.html">Home</a>
+			</li>
+			<li>
+				<a href="VHFQueries.html">Search</a>
+			</li>
+			<li>
+				<a href="VHFDataStats.html">Data Statistics</a>
+			</li>
+			<li>
+				<a href="VHFHelp.html">Help</a>
+			</li>
+			<li>
+				<a href="VHFContact.html">Contact Us</a>
+			</li>
+			<li> 
+				<a href="VHFContributor.html">Contributors</a>
+			</li>
+			<div class="topcorner"></div>
+		</ul>
+
+		</div>
+	<!---END Navigation bar--->
+	<div class = "search_data_outer_div">
+	<form class = "user_reset">
+		<div>Forgot Your Password or Username?</div>
+            <div class="search"><input type='text' id ="uname" name='uname' value=""/> </div>
+		Please enter your username or email and we'll send you an email to reset your password.
+		<div><input type="submit" name="submit" value="Submit"></div>
+	</form>
+	<p id="response"></p>
+	</div>
+
+<p id="error"></p>
+</body>
+</html>

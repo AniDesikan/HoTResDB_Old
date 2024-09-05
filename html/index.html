@@ -1,0 +1,303 @@
+<html>
+	<title>HotRes Database</title>
+	<head>
+		<!--<link rel="stylesheet" type="text/css" href = "VHFstyle.css">-->
+		<link rel="stylesheet" type="text/css" href = "css/VHFquerystyle.css">
+
+		<!--Load jquery api-->
+		<script type="text/javascript" 	async src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+
+		<!--Load jquery ui api-->
+		<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+		<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+		<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+		
+		<!-- Google Analytics -->
+		<script>
+		window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+		ga('create', 'UA-80347666-1', 'auto');
+		ga('send', 'pageview');
+		</script>
+		<script async src='https://www.google-analytics.com/analytics.js'></script>
+		<!--- End Google Analytics -->
+
+		<!--- Import Hotresdb Scripts -->
+		<script async src="js/hotresdb.js"></script>
+		
+		<script type="text/javascript">
+		// Set slideshow to first image
+		<!--var slideIndex = 1;-->
+		<!--$(document).ready(showSlides(slideIndex));-->
+
+		//Changes to next slides
+		function plusSlides(n) {
+			showSlides(slideIndex += n);
+		}
+		//Change slide to one selected
+		function currentSlide(n) {
+			showSlides(slideIndex = n);
+		}
+
+		//Function to change slides
+		function showSlides(n) {
+			var i;
+			var slides = document.getElementsByClassName("mySlides");
+			<!--var x = slides.length;-->
+			<!--console.log(x);-->
+			var dots = document.getElementsByClassName("dot");
+			if (n > slides.length){
+				slideIndex = 1;
+				<!--console.log(slideIndex);-->
+				}
+			if (n <= 1) {
+				slideIndex = slides.length;
+				<!--console.log(slideIndex);-->
+				}
+			for (i = 0; i < slides.length; i++){
+				slides[i].style.display="none";
+			}
+			for (i=0; i < dots.length; i++) {
+				dots[i].className = dots[i].className.replace(" active","");
+			}
+			<!--console.log(slides);-->
+			<!--console.log(slideIndex);-->
+			slides[slideIndex-1].style.display = "block";
+			dots[slideIndex-1].className += " active";
+		}
+		</script>
+		<script type="text/javascript">
+		setInterval(function () {document.getElementById("next").click();}, 8000);
+		</script>
+		<script type="text/javascript">
+		//Auto-resize intro_section div to fit text no matter window size
+		$(window).on("resize load", function(){
+		 	var slide_height = $('#slideshow1').outerHeight(true);
+		 	var text_height = $('#introtext1').outerHeight(true);
+			if (slide_height>text_height){
+				$("#intro_section").css("height",slide_height);
+				<!--console.log("Slide Height is Larger than Text Height");-->
+			}
+			if (slide_height<text_height){
+				$("#intro_section").css("height",text_height);
+				<!--console.log("Text Height is larger than Slide Height");-->
+			}
+		});
+		</script>
+		<script type="text/javascript">
+			// Function to get cookie by name
+			function getCookie(name) {
+				let matches = document.cookie.match(new RegExp(
+					"(?:^|; )" + name.replace(/([.$?*|{}()[]\\\/+^])/g, '\\$1') + "=([^;]*)"
+				));
+				return matches ? decodeURIComponent(matches[1]) : undefined;
+			}
+		
+			// Check if user is admin
+			function admincheck(data) {
+				var request = $.ajax({
+					type: "POST",
+					url: "/cgi-bin/adminstatus.py",
+					data: data,
+					dataType: "json",
+					success: function(response) {
+						let bool = response[0][0];
+						adminstate(bool);
+					},
+					error: function(response, data, status) {
+						console.log(response);
+						console.log(status);
+						console.log(data);
+						$("#error").html(response['responseText']);
+					},
+				});
+				return request;
+			}
+		
+			// On page load, check if user is admin
+			// On page load, check if user is admin
+function logincheck() {
+    var username = getCookie("username");
+    console.log(username);
+    if (username != "") {
+        var data = "&username=" + encodeURIComponent(username);
+        admincheck(data);
+        // Hide register button
+        document.getElementById("register_button").style.display = "none";
+    } else {
+        // Show register button
+        document.getElementById("register_button").style.display = "block";
+        document.getElementById("user-access-link").style.display = "none";
+		document.getElementById("enter-data").style.display = "none";
+    }
+}
+
+		
+			// Update the UI based on admin status
+			function adminstate(bool) {
+				if (bool == "Yes") {
+					document.getElementById("user-access-link").style.display = "block";
+					document.getElementById("enter-data").style.display = "block";
+				} else {
+					document.getElementById("user-access-link").style.display = "none";
+				}
+			}
+			// Ensure logincheck is called on page load
+			$(document).ready(function() {
+            logincheck();
+            showSlides(slideIndex);
+        });
+    </script>
+		
+	</head>
+	<body onload="showSlides(1)">
+
+		<div id="top_grad"></div>
+		<!-- Start container here NEEDS TO BE DONE -->
+		<!--<div class="put_maincontainerhere"></div>-->
+		<!--<div class="put_innercontainerhere"></div>-->
+			<div id = "pageHeader">
+				<!-- Website header-->
+				<!---h1>HoTRes<a style="color:#3333ff;">DB</a></h1--->
+				<img id = "logo" src="./img/HoTResDB_Logo_resize.PNG"/>
+
+				<div class ="landinglogin">
+					<form>
+						<button id = "login_button" formaction="VHFLogin.html">Login</button>
+						<!----Take user to cgi page to register,---->
+						<!----so password can be hashed right away---->
+						<button id = "register_button" formaction="VHFRegister.html">Register</button>
+					</form>
+				</div>
+
+				<!-- END website header-->
+			</div>
+		<div id ="navcontainer" class="navcontainer">
+		<!-- Navigation bar -->
+		<ul class = "navigation">
+			<li>
+				<a href="index.html">Home</a>
+			</li>
+			<li>
+				<a href="VHFQueries.html">Search</a>
+			</li>
+			<li>
+				<a href="VHFDataStats.html">Data Statistics</a>
+			</li>
+			<li>
+				<a href="VHFHelp.html">Help</a>
+			</li>
+			<li>
+				<a href="VHFContact.html">Contact Us</a>
+			</li>
+			<li>
+            	<a href="VHFContributor.html">Contributors</a>
+            </li>
+			<li id="user-access-link" style="display: none;">
+				<a href="VHFUserAccess.html">User Access</a>
+			</li>
+			<li id="enter-data" style="display: none;">
+				<a href="VHFEnterDataForm.html">Enter Data</a>
+			</li>
+			<div class="topcorner"></div>
+		</ul>
+		</div>
+
+			<!---END Navigation bar--->
+	<div id = "site_title">
+		<h1>Welcome to the Host Transcriptional Response Database</h1>
+	</div>
+	<div id="intro_container">
+	<section id = "intro_section">
+	<!---div class = "landing-outer"---->
+		<div id="slideshow1">
+			<div class="slideshow-container">
+			   <div class="mySlides fade">
+					<img src="./img/image015.png"/>
+					<!--<div class="numbertext">1/3</div>-->
+			   </div>
+			   <div class="mySlides fade " style="display:none">
+					<img src="./img/image014.png"/>
+					<!--<div class="numbertext">2/3</div>-->
+			   </div>
+			   <div class="mySlides fade" style="display:none">
+				   <img src="./img/image013.jpg"/>
+				   <div class="citation">Ebolavirus Ecology. Credit: CDC | <a href = "http://www.cdc.gov/vhf/ebola/resources/virus-ecology.html">Image source</a></div>
+					<!--<div class="numbertext">3/3</div>-->
+			   </div>
+			   <div class="mySlides fade" style="display:none">
+				   <img src="./img/ebola-virus-particles_14858655274_o.jpg"/>
+				   <div class="citation">Electron micrograph image of Ebola virus particles. Credit: NIAID | <a href = "https://www.flickr.com/photos/niaid/14858655274">Image source</a></div>
+					<!--<div class="numbertext">3/3</div>-->
+			   </div>
+				<div class="mySlides fade" style="display:none">
+				   <img src="./img/ebola-virus-particles_14739204679_o.jpg"/>
+				   <div class="citation">Electron micrograph image of filamentous Ebola virus particles. Credit: NIAID | <a href = "https://www.flickr.com/photos/niaid/14739204679">Image source</a></div>
+					<!--<div class="numbertext">3/3</div>-->
+			   </div>
+				<div class="mySlides fade" style="display:none">
+				   <img src="./img/ebola-virus-particles_14674502048_o.jpg"/>
+				   <div class="citation">Electron micrograph image of filamentous Ebola virus particles. Credit: NIAID | <a href = "https://www.flickr.com/photos/niaid/14674502048">Image source</a></div>
+					<!--<div class="numbertext">3/3</div>-->
+			   </div>
+				<div class="mySlides fade" style="display:none">
+				   <img src="./img/ebola-virus_14712446017_o.jpg"/>
+					<div class="citation">Electron micrograph image of Ebola virus. Credit: NIAID | <a href = "https://www.flickr.com/photos/niaid/14712446017">Image source</a></div>
+					<!--<div class="numbertext">3/3</div>-->
+			   </div>
+				<div class="mySlides fade" style="display:none">
+				   <img src="./img/ebola-virus_14712255469_o.jpg"/>
+				   <div class="citation">Electron micrograph image of Ebola virus. Credit: NIAID | <a href = "https://www.flickr.com/photos/niaid/14712255469">Image source</a></div>
+					<!--<div class="numbertext">3/3</div>-->
+			   </div>
+				<a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+				<a id = "next" class="next" onclick="plusSlides(1)">&#10095;</a>
+			</div>
+			<br>
+			<div style="text-align:center">
+				<span class="dot" onclick="currentSlide(1)"></span>
+				<span class="dot" onclick="currentSlide(2)"></span>
+				<span class="dot" onclick="currentSlide(3)"></span>
+				<span class="dot" onclick="currentSlide(4)"></span>
+				<span class="dot" onclick="currentSlide(5)"></span>
+				<span class="dot" onclick="currentSlide(6)"></span>
+				<span class="dot" onclick="currentSlide(7)"></span>
+				<span class="dot" onclick="currentSlide(8)"></span>
+			</div>
+		</div>
+		<div id = "introtext1">
+			<!--div id = "section"-->
+				<div style = "padding-right: 10px;">
+					<h3 style = "margin:0; padding-bottom: 5px; color: #0066cc;">Introduction</h3>
+					<p >
+					Viral Hemorrhagic Fever (VHF) infections encompass a group of illnesses that affect multiple
+					organ systems and induce vascular damage as well as impaired homeostatic regulation. VHFs can
+					be asymptomatic, but they can also induce high rates of mortality. Unfortunately, the host response
+					mechanisms that determine the pathogenicity, morbidity and mortality of VHFs are poorly understood.
+					</p>
+					<br>
+					<p>
+					HotRes Database aims to provide centralized access to gene expression data sets from studies of Ebola
+					virus, Marburg virus and Lassa virus infections in non-human primates. These studies were conducted
+					at the US Army Medical Research Institute of Infectious Diseases (USAMRIID), Integrated Research
+					Facilities (IRF) in Fredrick, MD or IRF at the Rocky Mountain Labs (RML). These studies were analyzed
+					at the Connor laboratory at Boston University Medical Center and should aid in the generation of
+					hypotheses and the elucidation of VHF host response mechanisms.
+					Please read more about the Connor lab <a href="http://www.connorlab.com/">here</a>. </p>
+					<br>
+					
+					
+					<br>
+				</div>
+				<div>
+						<b>Published data is publicly available without login.</b>
+				</div>
+
+			<!---/div--->
+		</div>
+
+	<!---/div----->
+	</section>
+	</div>
+
+	</body>
+</html>
